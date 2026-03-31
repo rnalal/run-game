@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>RunGame 관리자 메인</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /*전체 관리자 페이지 공통 색상*/
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --border: #e5e7eb;
+      --bg: #f3f4f6;
+      --danger:#ef4444;
+
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #374151;
+      --sidebar-hover: #f3f4f6;
+      --sidebar-active: #e0e7ff;
+    }
+
+   /*전체 레이아웃 기본 설정*/
+    body {
+      display: flex;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /*사이드바 영역*/
+    nav {
+      width: 240px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      padding-top: 28px;
+      border-right: 1px solid var(--border);
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+      overflow-y: auto;
+      flex-shrink: 0; /* nav 크기 고정 */
+    }
+
+    nav h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: -0.3px;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav li {
+      padding: 14px 22px;
+      margin: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      font-size: 15px;
+    }
+
+    nav li:hover {
+      background: var(--sidebar-hover);
+    }
+
+    nav li.active {
+      background: var(--sidebar-active);
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    /*우측 전체 콘텐츠 래퍼*/
+    .content {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /*상단 헤더*/
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 26px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    header h1 {
+      color: var(--primary-dark);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    header .right button {
+      margin-left: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .15s;
+    }
+
+    header .right button:hover {
+      background: var(--primary-dark);
+    }
+
+    /*메인 내용 영역*/
+    main {
+      padding: 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    h2 {
+      color: var(--primary-dark);
+      margin-bottom: 18px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /*요약 카드 묶음*/
+    .cards {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: white;
+      padding: 18px 24px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      flex: 1 1 250px;
+      font-size: 15px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .card b {
+      font-size: 24px;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .card.danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /*차트 박스 공통 스타일*/
+    .chart-box {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-top: 28px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .chart-box:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+  </style>
+  <link rel="stylesheet" href="/css/popup.css">
+  <script src="/js/popup.js"></script>
+</head>
+
+<body>
+<nav>
+  <h2>RunGame</h2>
+  <ul>
+    <li class="active" data-link="/rg-admin/main">🏠 대시보드</li>
+    <li data-link="/rg-admin/users/page">👥 유저 관리</li>
+    <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+    <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+    <li data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+    <li data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+    <li data-link="/rg-admin/qna">❓ Q&A 관리</li>
+    <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+    <li data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+  </ul>
+</nav>
+
+<div class="content">
+  <header>
+    <h1>관리자 대시보드</h1>
+    <div class="right">
+      <button id="homeBtn">🏠 홈</button>
+      <button id="mypageBtn">마이페이지</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+  </header>
+  <main>
+    <h2>📊 시스템 요약</h2>
+    <div class="cards">
+      <div class="card">총 유저 수: <b id="userCount">-</b></div>
+      <div class="card">오늘 세션 수: <b id="sessionCount">-</b></div>
+      <div class="card">오늘 코인 사용량: <b id="coinUsage">-</b></div>
+
+      <div class="card">DAU: <b id="dau">-</b></div>
+      <div class="card">WAU: <b id="wau">-</b></div>
+      <div class="card">MAU: <b id="mau">-</b></div>
+
+      <div class="card">신규가입(오늘): <b id="newUserToday">-</b></div>
+      <div class="card">신규가입(7일): <b id="newUserWeek">-</b></div>
+
+      <div class="card">평균 플레이 시간: <b id="avgPlayTime">-</b></div>
+      <div class="card">평균 점수: <b id="avgScore">-</b></div>
+    </div>
+
+    <div class="chart-box">
+      <h2>📈 최근 7일 플레이 수</h2>
+      <canvas id="sessionChart" height="90"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h2>🎯 이벤트 사용량 TOP 5</h2>
+      <canvas id="eventChart" height="90"></canvas>
+    </div>
+
+    <h2>🖥 시스템 상태</h2>
+
+    <div class="cards">
+      <div class="card danger">비정상 종료: <b id="crashCount">-</b></div>
+      <div class="card danger">API 오류: <b id="apiErrorCount">-</b></div>
+      <div class="card">메모리 사용량: <b id="memoryUsage">-</b></div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { apiFetch } from "/js/api.js";
+
+  //상단 버튼 동작 정의
+  document.querySelectorAll("nav li").forEach(li => {
+    li.addEventListener("click", () => {
+      window.location.href = li.dataset.link;
+    });
+  });
+
+  //로그아웃
+  logoutBtn.addEventListener("click", async () => {
+    await apiFetch("/api/users/logout", { method: "POST" });
+    alert("로그아웃되었습니다.");
+    location.href = "/rg-admin/login";
+  });
+
+  //홈,마이페이지 이동
+  homeBtn.onclick = () => location.href = "/rg-admin/main";
+  mypageBtn.onclick = () => location.href = "/mypage";
+
+  //공통 호출 유틸 함수
+  async function call(url) {
+    const res = await apiFetch(url);
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    return JSON.parse(text);
+  }
+
+  //요약 데이터 로드
+  async function loadSummary() {
+    try {
+      const r = await call("/rg-admin/dashboard/summary");
+
+      userCount.textContent = r.userCount;
+      sessionCount.textContent = r.todaySessionCount;
+      coinUsage.textContent = r.todayCoinUsage;
+
+      dau.textContent = r.dau;
+      wau.textContent = r.wau;
+      mau.textContent = r.mau;
+
+      newUserToday.textContent = r.newUserToday;
+      newUserWeek.textContent = r.newUserWeek;
+
+      avgPlayTime.textContent = r.avgPlayTimeText;
+      avgScore.textContent = r.avgScore;
+
+      crashCount.textContent = r.crashCount;
+      apiErrorCount.textContent = r.apiErrorCount;
+      memoryUsage.textContent = r.memoryMb + " MB";
+
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  //최근 7일 세션 수 차트 로드
+  async function loadSessionChart() {
+    const r = await call("/rg-admin/dashboard/chart/sessions");
+
+    new Chart(document.getElementById("sessionChart"), {
+      type: "line",
+      data: {
+        labels: r.labels,
+        datasets: [{
+          label: "세션 수",
+          data: r.data,
+          borderWidth: 2,
+          borderColor: "#2563eb",
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display:false } }
+      }
+    });
+  }
+
+  //이벤트 사용량 TOP5 차트 로드
+  async function loadEventChart() {
+    const r = await call("/rg-admin/dashboard/chart/events");
+
+    new Chart(document.getElementById("eventChart"), {
+      type: "bar",
+      data: {
+        labels: r.labels,
+        datasets: [{
+          label: "사용량",
+          data: r.data,
+        }]
+      },
+      options: {
+        responsive:true,
+        plugins:{ legend:{ display:false } }
+      }
+    });
+  }
+
+  //페이지 진입 시 대시보드 초기 데이터 로딩
+  loadSummary();
+  loadSessionChart();
+  loadEventChart();
+</script>
+
+</body>
+</html>

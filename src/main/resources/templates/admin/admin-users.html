@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>RunGame - 유저 관리</title>
+
+    <style>
+        /*전체 관리자 페이지 공통 색상*/
+        :root {
+          --primary:#2563eb;
+          --primary-dark:#1e40af;
+          --bg:#f9fafb;
+          --card:#ffffff;
+          --border:#e5e7eb;
+          --sub:#6b7280;
+
+          --sidebar-bg:#ffffff;
+          --sidebar-text:#374151;
+          --sidebar-hover:#f3f4f6;
+          --sidebar-active:#e0e7ff;
+        }
+
+        /*전체 레이아웃*/
+        body {
+          margin:0;
+          display:flex;
+          height:100vh;
+          background:var(--bg);
+          font-family:Inter,system-ui,-apple-system;
+          color:#111827;
+        }
+
+        /*사이드바*/
+        nav {
+          width:240px;
+          background:var(--sidebar-bg);
+          border-right:1px solid var(--border);
+          padding-top:28px;
+          overflow-y:auto;
+        }
+
+        nav h2 {
+          text-align:center;
+          margin-bottom:24px;
+          font-weight:700;
+          color:var(--primary-dark);
+        }
+
+        nav ul {
+            list-style:none;
+            padding:0;
+            margin:0;
+        }
+
+        nav li {
+          padding:14px 22px;
+          margin:4px 12px;
+          border-radius:8px;
+          cursor:pointer;
+          font-size:15px;
+          color:var(--sidebar-text);
+          transition:background .15s, color .15s;
+        }
+
+        nav li:hover {
+            background:var(--sidebar-hover);
+        }
+
+        nav li.active {
+          background:var(--sidebar-active);
+          color:var(--primary-dark);
+          font-weight:600;
+        }
+
+        /*우측 콘텐츠 래퍼*/
+        .content {
+          flex:1;
+          display:flex;
+          flex-direction:column;
+        }
+
+        /*상단 헤더*/
+        header {
+          background:white;
+          border-bottom:1px solid var(--border);
+          padding:14px 26px;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          box-shadow:0 1px 6px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+          margin:0;
+          color:var(--primary-dark);
+          font-size:22px;
+        }
+
+        header button {
+          background:var(--primary);
+          color:white;
+          border:none;
+          border-radius:8px;
+          padding:8px 14px;
+          margin-left:10px;
+          cursor:pointer;
+          font-size:14px;
+        }
+
+        header button:hover {
+            background:var(--primary-dark);
+        }
+
+        /*메인 콘텐츠 영역*/
+        main {
+          flex:1;
+          overflow-y:auto;
+          padding:32px;
+        }
+
+        /*카드 컴포넌트*/
+        .card {
+          background:white;
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:24px;
+          margin-bottom:28px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .sub {
+            font-size:13px;
+            color:var(--sub);
+            margin-bottom:6px;
+        }
+
+        h2 {
+          margin-top:0;
+          color:var(--primary-dark);
+          font-size:18px;
+        }
+
+        /*행 레이아웃*/
+        .row {
+          display:flex;
+          gap:10px;
+          margin-bottom:12px;
+          flex-wrap:wrap;
+          align-items:center;
+        }
+
+        /*폼 요소 스타일*/
+        input, select {
+          padding:8px 10px;
+          font-size:14px;
+          border-radius:8px;
+          border:1px solid var(--border);
+          background:white;
+          min-height:38px;
+        }
+
+        /*버튼 스타일*/
+        button {
+          background:var(--primary);
+          color:white;
+          border:none;
+          padding:8px 14px;
+          border-radius:8px;
+          cursor:pointer;
+          font-size:14px;
+        }
+
+        button:hover {
+            background:var(--primary-dark);
+        }
+
+        /*유저 목록 테이블*/
+        table {
+          width:100%;
+          border-collapse:collapse;
+          margin-top:10px;
+          font-size:14px;
+        }
+
+        th, td {
+          padding:10px 12px;
+          border-bottom:1px solid var(--border);
+          text-align:left;
+        }
+
+        th {
+          background:#eef2ff;
+          font-weight:600;
+        }
+
+        /*상태 표시 색상*/
+        .status-ACTIVE {
+            color:green;
+            font-weight:600;
+        }
+
+        .status-BANNED {
+            color:#dc2626;
+            font-weight:600;
+        }
+
+        .status-DELETED {
+            color:#6b7280;
+            font-weight:600;
+        }
+
+        /*JSON, 로그 출력 영역*/
+        pre {
+          background:#f3f4f6;
+          padding:12px;
+          border-radius:8px;
+          white-space:pre-wrap;
+          font-size:13px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+<body>
+<nav>
+    <h2>RunGame</h2>
+    <ul>
+        <li data-link="/rg-admin/main">📊 대시보드</li>
+        <li class="active" data-link="/rg-admin/users/page">👥 유저 관리</li>
+        <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+        <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+        <li data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+        <li data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+        <li data-link="/rg-admin/qna">❓ Q&A 관리</li>
+        <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+        <li data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+    </ul>
+</nav>
+
+<div class="content">
+    <header>
+        <h1>유저 관리</h1>
+        <div>
+            <button id="homeBtn">🏠 홈</button>
+            <button id="mypageBtn">마이페이지</button>
+            <button id="logoutBtn">로그아웃</button>
+        </div>
+    </header>
+
+    <main>
+        <h2>👥 유저 관리</h2>
+
+        <div class="card">
+            <h2>목록 / 검색</h2>
+            <div class="row">
+                <input id="id" type="number" placeholder="ID">
+                <input id="nickname" placeholder="닉네임">
+                <input id="email" placeholder="이메일">
+                <select id="status">
+                    <option value="">상태</option>
+                    <option>ACTIVE</option>
+                    <option>BANNED</option>
+                    <option>DELETED</option>
+                </select>
+                <select id="role">
+                    <option value="">권한</option>
+                    <option>USER</option>
+                    <option>ADMIN</option>
+                    <option>SUPER_ADMIN</option>
+                </select>
+                <button id="listBtn">조회</button>
+            </div>
+
+            <table id="userTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>닉네임</th>
+                    <th>이메일</th>
+                    <th>권한</th>
+                    <th>상태</th>
+                    <th>가입일</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <pre id="outList"></pre>
+        </div>
+
+        <div class="card">
+            <h2>상세 보기</h2>
+            <div class="row">
+                <input id="detailUserId" type="number" placeholder="userId">
+                <button id="detailBtn">상세 조회</button>
+            </div>
+            <pre id="outDetail"></pre>
+        </div>
+
+        <div class="card">
+            <h2>제재 / 권한</h2>
+
+            <div class="row">
+                <input id="banUserId" type="number" placeholder="userId">
+                <select id="banFlag">
+                    <option value="true">정지</option>
+                    <option value="false">해제</option>
+                </select>
+                <button id="banBtn">적용</button>
+            </div>
+            <pre id="outBan"></pre>
+
+            <div class="row">
+                <input id="roleUserId" type="number" placeholder="userId">
+                <select id="roleVal">
+                    <option>USER</option>
+                    <option>ADMIN</option>
+                    <option>SUPER_ADMIN</option>
+                </select>
+                <button id="roleBtn">권한 변경</button>
+            </div>
+            <pre id="outRole"></pre>
+        </div>
+
+        <div class="card">
+            <h2>최근 활동</h2>
+            <div class="row">
+                <input id="actUserId" type="number" placeholder="userId">
+                <input id="actDays" type="number" placeholder="최근 일수 (기본 30)">
+                <button id="activityBtn">조회</button>
+            </div>
+            <pre id="outActivity"></pre>
+        </div>
+
+    </main>
+</div>
+
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //검색 필터 입력 요소 캐싱
+    const idInput = document.getElementById("id");
+    const nicknameInput = document.getElementById("nickname");
+    const emailInput = document.getElementById("email");
+    const statusInput = document.getElementById("status");
+    const roleInput = document.getElementById("role");
+
+    //사이드바 네비
+    document.querySelectorAll("nav li").forEach(li => {
+      li.addEventListener("click", () => {
+        location.href = li.dataset.link;
+      });
+    });
+
+    //상단 공통 버튼
+    homeBtn.onclick = () => location.href = "/rg-admin/main";
+    mypageBtn.onclick = () => location.href = "/mypage";
+    logoutBtn.onclick = async () => {
+      await apiFetch("/api/users/logout", { method:"POST" });
+      alert("로그아웃되었습니다.");
+      location.href = "/rg-admin/login";
+    };
+
+    //공통 API 호출 헬퍼
+    const fetchJSON = async (method, url, body=null) => {
+      const res = await apiFetch(url, {
+        method,
+        headers: body ? { "Content-Type":"application/json" } : {},
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text);
+      return text ? JSON.parse(text) : {};
+    };
+
+    //쿼리스트링 빌더
+    const q = (params) =>
+      Object.entries(params)
+        .filter(([_,v]) => v !== "" && v !== null && v !== undefined)
+        .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join("&");
+
+    //유저 목록 조회
+    listBtn.onclick = async () => {
+      const qs = q({
+        id: idInput.value,
+        nickname: nicknameInput.value,
+        email: emailInput.value,
+        status: statusInput.value,
+        role: roleInput.value,
+        page:0,
+        size:20
+      });
+
+      try {
+        const data = await fetchJSON("GET", "/rg-admin/users/data?" + qs);
+        userTable.querySelector("tbody").innerHTML = "";
+
+        data.content.forEach(u => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${u.id}</td>
+            <td>${u.nickname}</td>
+            <td>${u.email}</td>
+            <td>${u.role}</td>
+            <td class="status-${u.status}">${u.status}</td>
+            <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+          `;
+          userTable.querySelector("tbody").appendChild(tr);
+        });
+
+      } catch (e) {
+        outList.textContent = e;
+      }
+    };
+
+    //유저 상세 정보 조회
+    detailBtn.onclick = async () => {
+      try {
+        const r = await fetchJSON("GET", `/rg-admin/users/${detailUserId.value}`);
+        outDetail.textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        outDetail.textContent = e;
+      }
+    };
+
+    //유저 정지,해제 처리
+    banBtn.onclick = async () => {
+      try {
+        const r = await fetchJSON("PATCH", `/rg-admin/users/${banUserId.value}/ban`, {
+          ban: banFlag.value === "true"
+        });
+        outBan.textContent = "✔ 처리 완료";
+      } catch (e) {
+        outBan.textContent = e;
+      }
+    };
+
+    //유저 권한 변경
+    roleBtn.onclick = async () => {
+      try {
+        await fetchJSON("PATCH", `/rg-admin/users/${roleUserId.value}/role`, {
+          role: roleVal.value
+        });
+        outRole.textContent = "✔ 변경 완료";
+      } catch (e) {
+        outRole.textContent = e;
+      }
+    };
+
+    //유저 최근 활동 조회
+    activityBtn.onclick = async () => {
+      try {
+        const r = await fetchJSON("GET",
+          `/rg-admin/users/${actUserId.value}/activity?days=${actDays.value || 30}`
+        );
+        outActivity.textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        outActivity.textContent = e;
+      }
+    };
+
+    //초기 진입 시 기본 목록 자동 조회
+    listBtn.click();
+</script>
+
+</body>
+</html>

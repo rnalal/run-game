@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>공지 상세 - RunGame</title>
+
+    <style>
+        /*공통 네비 스타일*/
+        .nav-icon-btn {
+            position: fixed;
+            top: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(6px);
+            transition: 0.2s;
+        }
+        .nav-icon-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .nav-back {
+            left: 16px;
+        }
+        .nav-home {
+            right: 16px;
+        }
+
+        .with-nav-padding {
+            margin-top: 80px;
+        }
+
+        /*전체 페이지 기본 배경,폰트 스타일*/
+        body {
+            margin:0;
+            background:#0f172a;
+            color:#fff;
+            font-family:'Inter', sans-serif;
+        }
+
+        /*중앙 정렬 컨테이너*/
+        .container {
+            max-width:800px;
+            margin:40px auto;
+            padding:0 20px;
+        }
+
+        /*상단 페이지 타이틀*/
+        h1.page-title {
+            font-size:32px;
+            text-align:center;
+            margin-bottom:26px;
+            color:#60a5fa;
+            text-shadow:0 0 8px rgba(96,165,250,0.45);
+            font-weight:700;
+        }
+
+        /*공지 제목 스타일*/
+        .notice-title {
+            font-size:26px;
+            font-weight:600;
+            margin-bottom:16px;
+            margin-top:6px;
+         }
+
+        /*작성일,시간 표시 텍스트 스타일*/
+        .date {
+            color:#94a3b8;
+            margin-bottom:20px;
+         }
+
+        /*공지 본문 박스 스타일*/
+        .content {
+            background:#1e293b;
+            padding:20px;
+            border-radius:12px;
+            border:1px solid #334155;
+            white-space:pre-wrap;
+        }
+
+        /*본문 내 링크 색상*/
+        a {
+            color:#60a5fa;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+
+    <h1 class="page-title">공지사항 상세</h1>
+
+    <h1 class="notice-title" id="title"></h1>
+    <div class="date" id="date"></div>
+    <div class="content" id="content"></div>
+</div>
+
+<script>
+    //ISO 문자열을 YYYY-MM-DD HH:mm 형식으로 바꿔주는 함수
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+        const d = new Date(dateString);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2,'0')} `
+            + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    //URL 경로에서 맨 마지막 segment를 ID로 사용
+    const id = location.pathname.split("/").pop();
+
+    //서버에서 공지 상세 정보를 가져와 화면에 채우는 함수
+    async function loadDetail() {
+        const res = await fetch(`/public/notices/${id}`);
+        const n = await res.json();
+        title.innerText = n.title;
+        date.innerText = formatDate(n.createdAt);
+        content.innerText = n.content;
+    }
+
+    //페이지 로딩 시 즉시 공지 상세 조회
+    loadDetail();
+</script>
+
+</body>
+</html>

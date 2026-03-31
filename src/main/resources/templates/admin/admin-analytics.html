@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RunGame - 분석 / 운영 도구</title>
+
+    <style>
+        /*전체 관리자 페이지 공통 색상*/
+        :root {
+            --primary:#2563eb;
+            --primary-dark:#1e40af;
+            --bg:#f3f4f6;
+            --card:#fff;
+            --border:#e5e7eb;
+
+            --sidebar-bg:#ffffff;
+            --sidebar-text:#374151;
+            --sidebar-hover:#f3f4f6;
+            --sidebar-active:#e0e7ff;
+        }
+
+        /*레이아웃 기본 설정*/
+        body {
+            margin:0;
+            display:flex;
+            height:100vh;
+            font-family:Inter,system-ui,-apple-system;
+            background:var(--bg);
+            color:#111827;
+            overflow:hidden; //전체 화면 고정, main만 스크롤
+        }
+
+        /*사이드바 영역*/
+        nav {
+            width:240px;
+            height:100vh;
+            background:var(--sidebar-bg);
+            color:var(--sidebar-text);
+            padding-top:28px;
+            border-right:1px solid var(--border);
+            box-shadow:2px 0 8px rgba(0,0,0,0.04);
+            overflow-y:auto;
+            flex-shrink:0;
+        }
+
+        nav h2 {
+            text-align:center;
+            margin-bottom:24px;
+            font-weight:700;
+            color:var(--primary-dark);
+            letter-spacing:-0.3px;
+        }
+
+        nav ul {
+            list-style:none;
+            padding:0;
+            margin:0;
+        }
+
+        nav li {
+            padding:14px 22px;
+            margin:4px 12px;
+            border-radius:8px;
+            cursor:pointer;
+            transition:background .2s, color .2s;
+            font-size:15px;
+        }
+
+        nav li:hover {
+            background:var(--sidebar-hover);
+        }
+
+        nav li.active {
+            background:var(--sidebar-active);
+            font-weight:600;
+            color:var(--primary-dark);
+        }
+
+        /*오른쪽 메인 콘텐츠 래퍼*/
+        .content {
+            display:flex;
+            flex-direction:column;
+            flex:1;
+            height:100vh;
+            overflow:hidden;
+        }
+
+        /*상단 헤더 영역*/
+        header {
+            background:white;
+            border-bottom:1px solid var(--border);
+            flex-shrink:0;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:14px 26px;
+            box-shadow:0 1px 6px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+            color:var(--primary-dark);
+            font-size:22px;
+            font-weight:700;
+        }
+
+        header button {
+            margin-left:10px;
+            background:var(--primary);
+            color:white;
+            border:none;
+            border-radius:6px;
+            padding:8px 14px;
+            cursor:pointer;
+            transition:background .15s;
+        }
+
+        header button:hover {
+            background:var(--primary-dark);
+        }
+
+        /*메인 영역*/
+        main {
+            flex:1;
+            overflow-y:auto;
+            padding:28px;
+        }
+
+        h2 {
+            color:var(--primary-dark);
+            margin-top:0;
+            margin-bottom:18px;
+            font-size:20px;
+            font-weight:700;
+        }
+
+        /*카드 박스 공통 스타일*/
+        .card {
+            background:white;
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:20px;
+            margin-bottom:24px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.04);
+        }
+
+        /*행 정렬*/
+        .row {
+            display:flex;
+            gap:8px;
+            margin-bottom:10px;
+            flex-wrap:wrap;
+        }
+
+        /*인풋,버튼 공통 스타일*/
+        input, button {
+            padding:8px;
+            border-radius:6px;
+            border:1px solid var(--border);
+            font-size:14px;
+        }
+
+        button {
+            background:var(--primary);
+            color:white;
+            border:none;
+            cursor:pointer;
+            transition:background .15s;
+        }
+
+        button:hover {
+            background:var(--primary-dark);
+        }
+
+        /*결과 출력 영역*/
+        pre {
+            background:#eef2ff;
+            padding:12px;
+            border-radius:8px;
+            white-space:pre-wrap;
+            font-size:14px;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<nav>
+    <h2>RunGame</h2>
+    <ul>
+        <li data-link="/rg-admin/main">📊 대시보드</li>
+        <li data-link="/rg-admin/users/page">👥 유저 관리</li>
+        <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+        <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+        <li data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+        <li data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+        <li data-link="/rg-admin/qna">❓ Q&A 관리</li>
+        <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+        <li class="active" data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+    </ul>
+</nav>
+
+<div class="content">
+
+    <header>
+        <h1>분석 / 운영 도구</h1>
+        <div>
+            <button id="homeBtn">🏠 홈</button>
+            <button id="mypageBtn">마이페이지</button>
+            <button id="logoutBtn">로그아웃</button>
+        </div>
+    </header>
+
+    <main>
+        <h2>📈 분석 / 운영 도구</h2>
+
+        <div class="card">
+
+            <div class="row">
+                <button id="userGrowth">유저 성장 차트</button>
+            </div>
+            <pre id="outGrowth"></pre>
+
+            <div class="row">
+                <button id="coinUsage">코인 사용 통계</button>
+            </div>
+            <pre id="outCoin"></pre>
+
+            <div class="row">
+                <button id="eventFreq">이벤트 발생 빈도</button>
+            </div>
+            <pre id="outEvent"></pre>
+
+            <div class="row">
+                <button id="serverMetrics">서버 상태 / 응답 통계</button>
+            </div>
+            <pre id="outServer"></pre>
+
+            <div class="row">
+                <input id="abUserId" type="number" placeholder="userId">
+                <button id="abAssign">A/B 그룹 배정</button>
+                <button id="abStats">A/B 통계</button>
+            </div>
+            <pre id="outAB"></pre>
+
+        </div>
+    </main>
+
+</div>
+
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //사이드바 메뉴 이동
+    document.querySelectorAll("nav li").forEach(li => {
+        li.addEventListener("click", () => location.href = li.dataset.link);
+    });
+
+    //상단 우측 버튼
+    logoutBtn.onclick = async () => {
+        await apiFetch("/api/users/logout", { method:"POST", credentials:"include" });
+        alert("로그아웃되었습니다.");
+        location.href = "/rg-admin/login";
+    };
+
+    homeBtn.onclick = () => location.href = "/rg-admin/main";
+    mypageBtn.onclick = () => location.href = "/mypage";
+
+    //공통 호출 유틸 함수
+    async function call(url) {
+        const res = await apiFetch(url);
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+        try {
+            return JSON.parse(text);
+         } catch {
+            return text;
+         }
+    }
+
+    //유저 성장 차트 데이터 조회
+    userGrowth.onclick = async () => {
+        try {
+            outGrowth.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/user-growth`),
+                 null,
+                 2
+            );
+        } catch (e) {
+            outGrowth.textContent = e;
+        }
+    };
+
+    //코인 사용 통계 조회
+    coinUsage.onclick = async () => {
+        try {
+            outCoin.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/coin-usage`),
+                null,
+                2
+            );
+        } catch (e) {
+            outCoin.textContent = e;
+        }
+    };
+
+    //이벤트 발생 빈도 조회
+    eventFreq.onclick = async () => {
+        try {
+            outEvent.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/event-frequency`),
+                null,
+                2
+            );
+        } catch (e) {
+            outEvent.textContent = e;
+        }
+    };
+
+    //서버 상태, 응답 통계 조회
+    serverMetrics.onclick = async () => {
+        try {
+            outServer.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/server-metrics`),
+                null,
+                2
+            );
+        } catch (e) {
+            outServer.textContent = e;
+        }
+    };
+
+    //A,B 그룹 배정
+    abAssign.onclick = async () => {
+        if (!abUserId.value) return alert("userId를 입력하세요");
+        try {
+            outAB.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/ab/group?userId=${abUserId.value}`),
+                null,
+                2
+            );
+        } catch (e) {
+            outAB.textContent = e;
+        }
+    };
+
+    //A,B 통계 조회
+    abStats.onclick = async () => {
+        try {
+            outAB.textContent = JSON.stringify(
+                await call(`/rg-admin/analytics/ab/stats`),
+                null,
+                2
+            );
+        } catch (e) {
+            outAB.textContent = e;
+        }
+    };
+</script>
+
+</body>
+</html>

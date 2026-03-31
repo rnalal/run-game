@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RunGame 회원가입</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Pretendard&display=swap" rel="stylesheet">
+
+    <style>
+        /*공통 네비 버튼 스타일*/
+        .nav-icon-btn {
+            position: fixed;
+            top: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+
+            backdrop-filter: blur(6px);
+            transition: 0.2s;
+        }
+        .nav-icon-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .nav-back {
+            left: 16px;
+        }
+        .nav-home {
+            right: 16px;
+        }
+        .with-nav-padding {
+            margin-top: 80px;
+        }
+
+        /*색상, 공통 값 정의*/
+        :root {
+          --primary: #3b82f6;
+          --primary-glow: #60a5fa;
+          --bg-dark: #0f172a;
+          --bg-card: rgba(255,255,255,0.08);
+          --border: rgba(255,255,255,0.15);
+          --text-light: #e2e8f0;
+          --danger: #ef4444;
+          --success: #22c55e;
+        }
+
+        /*전체 페이지 배경과 중앙 정렬 레이아웃*/
+        body {
+          margin: 0;
+          height: 100vh;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: var(--text-light);
+        }
+
+        /*회원가입 카드 컨테이너 스타일*/
+        .signup-container {
+          width: 380px;
+          background: var(--bg-card);
+          padding: 32px;
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 0 25px rgba(0,0,0,0.3);
+          animation: fadeIn 0.9s ease;
+        }
+
+        /*카드 등장 애니메이션*/
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+          font-family: 'Orbitron', sans-serif;
+          font-size: 24px;
+          text-align: center;
+          margin-bottom: 8px;
+          color: var(--primary);
+          text-shadow: 0 0 10px var(--primary-glow);
+          letter-spacing: 1px;
+        }
+
+        /*타이틀 아래 간단한 안내 문구 스타일*/
+        .subtitle {
+          text-align: center;
+          font-size: 13px;
+          color: #94a3b8;
+          margin-bottom: 24px;
+        }
+
+        /*폼 내 label 공통 스타일*/
+        .signup-container label {
+          font-size: 14px;
+          margin-bottom: 6px;
+          display: block;
+        }
+
+        /*이메일,비밀번호,닉네임 입력 필드 스타일*/
+        input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background: rgba(255,255,255,0.05);
+          color: white;
+          font-size: 15px;
+          margin-bottom: 6px;
+        }
+
+        /*비밀번호 유효성 메세지 공통 영역 스타일*/
+        .msg {
+            font-size: 12px;
+            height: 15px;
+            margin-bottom: 12px;
+        }
+        .msg.error {
+            color: var(--danger);
+        }
+        .msg.success {
+            color: var(--success);
+        }
+
+        /*회원가입,로그인 버튼 공통 스타일*/
+        button {
+          width: 100%;
+          padding: 12px;
+          margin-top: 8px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 600;
+          background: var(--primary);
+          color: white;
+          transition: 0.25s;
+          box-shadow: 0 0 10px rgba(59,130,246,0.4);
+        }
+        button:hover {
+          background: var(--primary-glow);
+        }
+
+        .sub-buttons button {
+          background: rgba(255,255,255,0.12);
+          margin-top: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+<!-- 회원가입 입력 폼 -->
+<div class="signup-container">
+
+    <div class="title">RUN GAME SIGN UP</div>
+    <div class="subtitle">달리기 전에, 먼저 계정을 만들어볼까요?</div>
+
+    <form id="signupForm">
+        <label>이메일</label>
+        <input type="email" id="email" required>
+
+        <label>비밀번호</label>
+        <input type="password" id="password" required>
+        <div id="pwMsg" class="msg"></div>
+
+        <label>비밀번호 재확인</label>
+        <input type="password" id="password2" required>
+        <div id="pw2Msg" class="msg"></div>
+
+        <label>닉네임</label>
+        <input type="text" id="nickname" required>
+
+        <button type="submit">회원가입</button>
+    </form>
+
+    <div class="sub-buttons">
+        <button id="loginBtn">이미 계정이 있어요 · 로그인</button>
+    </div>
+</div>
+
+<script>
+    const pw = password;
+    const pw2 = password2;
+
+    //비밀번호 입력 시 길이에 따른 안내 메세지 업데이트
+    pw.addEventListener("input", () => {
+        if (pw.value.length < 8) {
+            pwMsg.textContent = "8자 이상 입력해주세요.";
+            pwMsg.className = "msg error";
+        } else {
+            pwMsg.textContent = "안전한 비밀번호입니다.";
+            pwMsg.className = "msg success";
+        }
+    });
+
+    //비밀번호 재입력 시 일치 여부 안내 메세지 업데이트
+    pw2.addEventListener("input", () => {
+        if (pw.value === pw2.value && pw2.value.length >= 8) {
+            pw2Msg.textContent = "비밀번호 일치!";
+            pw2Msg.className = "msg success";
+        } else {
+            pw2Msg.textContent = "비밀번호가 일치하지 않습니다.";
+            pw2Msg.className = "msg error";
+        }
+    });
+
+    //회원가입 폼 제출 시 서버에 회원가입 API 요청
+    signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        //비밀번호 최소 길이 및 일치 여부 검증
+        if (pw.value.length < 8) return alert("비밀번호가 너무 짧습니다.");
+        if (pw.value !== pw2.value) return alert("비밀번호가 일치하지 않습니다.");
+
+        //회원가입 요청 바디 데이터 구성
+        const body = {
+            email: email.value,
+            password: pw.value,
+            nickname: nickname.value
+        };
+
+        //회원가입 API 호출
+        const res = await fetch("/api/users/sign-up", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const json = await res.json();
+
+        //실패 시 서버에서 내려온 메세지 출력
+        if (!json.success) return alert("회원가입 실패: " + json.message);
+
+        //성공 시 안내 후 로그인 페이지로 이동
+        alert("회원가입 완료! 로그인 페이지로 이동합니다.");
+        location.href = "/login";
+    });
+
+    //하단 로그인 버튼 클릭 시 로그인 페이지로 이동
+    loginBtn.onclick = () => location.href = "/login";
+</script>
+
+</body>
+</html>

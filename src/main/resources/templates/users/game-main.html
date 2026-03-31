@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RUN GAME - MAIN</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Pretendard&display=swap" rel="stylesheet">
+
+    <style>
+        /*공통 색상 변수*/
+        :root {
+          --primary: #3b82f6;
+          --primary-glow: #60a5fa;
+          --border: rgba(255,255,255,0.2);
+          --text-light: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /*전체 기본 스타일*/
+        body {
+          margin: 0;
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          color: white;
+          overflow: hidden;
+        }
+
+        /*중앙 카드 컨테이너*/
+        .container {
+          width: 450px;
+          padding: 40px 30px;
+          text-align: center;
+          backdrop-filter: blur(15px);
+          background: rgba(255,255,255,0.08);
+          border-radius: 18px;
+          border: 1px solid var(--border);
+          box-shadow: 0 0 40px rgba(0,0,0,0.45);
+          animation: fadeIn 1s ease;
+        }
+
+        /*첫 진입 시 부드러운 등장 애니메이션*/
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /*상단 게임 타이틀*/
+        .title {
+          font-family: 'Orbitron', sans-serif;
+          font-size: 42px;
+          margin-bottom: 30px;
+          color: var(--primary);
+          text-shadow: 0 0 15px var(--primary-glow);
+          letter-spacing: 2px;
+        }
+
+        /*기본 버튼 스타일*/
+        button {
+          width: 100%;
+          padding: 14px;
+          margin-top: 12px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          font-size: 18px;
+          font-weight: 600;
+          background: var(--primary);
+          color: white;
+          transition: 0.25s;
+          box-shadow: 0 0 15px rgba(59,130,246,0.4);
+        }
+
+        button:hover {
+          background: var(--primary-glow);
+          box-shadow: 0 0 18px rgba(96,165,250,0.8);
+        }
+
+        /*서브 버튼 스타일*/
+        .sub-btn {
+          background: rgba(255,255,255,0.12);
+          box-shadow: none;
+        }
+        .sub-btn:hover {
+          background: rgba(255,255,255,0.25);
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+<div class="container">
+    <div class="title">RUN GAME</div>
+
+    <button id="startBtn">🎮 게임 시작</button>
+
+    <!-- 로그인 전 버튼 -->
+    <button id="loginBtn" class="sub-btn">🔐 로그인</button>
+    <button id="signupBtn" class="sub-btn">📝 회원가입</button>
+
+    <!-- 로그인 후 버튼 -->
+    <button id="mypageBtn" class="sub-btn" style="display:none;">👤 마이페이지</button>
+    <button id="logoutBtn" class="sub-btn" style="display:none;">🚪 로그아웃</button>
+
+    <button id="noticeBtn" class="sub-btn">📢 공지사항</button>
+    <button id="qnaBtn" class="sub-btn">❓QnA</button>
+</div>
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //버튼 엘리먼트 캐싱
+    const startBtn  = document.getElementById("startBtn");
+    const loginBtn  = document.getElementById("loginBtn");
+    const signupBtn = document.getElementById("signupBtn");
+    const mypageBtn = document.getElementById("mypageBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const noticeBtn = document.getElementById("noticeBtn");
+    const qnaBtn    = document.getElementById("qnaBtn");
+
+    //로그인한 유저 정보
+    let currentUser = null;
+
+    //현재 로그인 상태 확인
+    async function checkLogin() {
+      try {
+        const res = await fetch("/api/users/me", { credentials: "include" });
+        if (!res.ok) return null;
+
+        const json = await res.json();
+        return json.success ? json.data : null;
+      } catch {
+        //네트워크 에러 등일 경우에도 null 처리
+        return null;
+      }
+    }
+
+    //페이지 진입 시 한 번 로그인 상태 체크하고 버튼 토글
+    (async () => {
+      currentUser = await checkLogin();
+
+      if (currentUser) {
+        //로그인 한 상태: 로그인,회원가입 숨기고 마이페이지,로그아웃 노출
+        loginBtn.style.display = "none";
+        signupBtn.style.display = "none";
+        mypageBtn.style.display = "block";
+        logoutBtn.style.display = "block";
+      }
+    })();
+
+    //게임 시작 버튼 클릭
+    startBtn.onclick = async () => {
+      if (!currentUser) {
+        alert("로그인 후 이용해주세요!");
+        location.href = "/login";
+        return;
+      }
+      location.href = "/game";
+    };
+
+    //상단 메뉴 핸들러들
+    loginBtn.onclick  = () => location.href = "/login";
+    signupBtn.onclick = () => location.href = "/signup";
+    mypageBtn.onclick = () => location.href = "/mypage";
+    noticeBtn.onclick = () => location.href = "/notices";
+
+    //로그아웃 처리
+    logoutBtn.onclick = async () => {
+      try {
+        await apiFetch("/api/auth/logout", { method: "POST" });
+      } finally {
+        alert("로그아웃되었습니다.");
+        location.reload();
+      }
+    };
+
+    //QnA 버튼 클릭
+    qnaBtn.onclick = async () => {
+      if (!currentUser) {
+        alert("QnA는 로그인 후 이용할 수 있습니다.");
+        location.href = "/login";
+        return;
+      }
+      location.href = "/qna";
+    };
+</script>
+</body>
+</html>

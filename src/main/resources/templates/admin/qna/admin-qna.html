@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Q&A 관리 - RunGame Admin</title>
+
+  <style>
+    /* 전체 페이지에서 공통으로 사용하는 색상들 */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --border: #e5e7eb;
+      --bg: #f3f4f6;
+      --danger:#ef4444;
+
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #374151;
+      --sidebar-hover: #f3f4f6;
+      --sidebar-active: #e0e7ff;
+    }
+
+    /* 레이아웃 기본 설정 */
+    body {
+      display: flex;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /*사이드바 영역*/
+    nav {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding-top: 28px;
+    }
+
+    nav h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav li {
+      padding: 14px 22px;
+      margin: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    nav li:hover {
+      background: var(--sidebar-hover);
+    }
+
+    nav li.active {
+      background: var(--sidebar-active);
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    /*오른쪽 메인 콘텐츠 래퍼*/
+    .content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /*상단 헤더*/
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 26px;
+    }
+
+    header h1 {
+      color: var(--primary-dark);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    header .right button {
+      margin-left: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /*메인 스크롤 영역*/
+    main {
+      padding: 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    h2 {
+      color: var(--primary-dark);
+      margin-bottom: 18px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /*검색 영역*/
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+
+    .search-box button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /*
+    QnA카드 스타일
+    - 각 질문을 하나의 카드처럼 노출
+    */
+    .qna-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .qna-card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /*뱃지 스타일(상태,공개 여부)*/
+    .badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .answered {
+      background:#dcfce7;
+      color:#065f46;
+    }
+
+    .waiting  {
+      background:#fee2e2;
+      color:#991b1b;
+    }
+
+    .public   {
+      background:#dbeafe;
+      color:#1e40af;
+    }
+
+    .private  {
+      background:#fee2e2;
+      color:#991b1b;
+    }
+
+    /*페이징 영역*/
+    #pagination {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #pagination button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    #pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #pageInfo {
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+  </style>
+  <link rel="stylesheet" href="/css/popup.css">
+  <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<nav>
+  <h2>RunGame</h2>
+  <ul>
+    <li data-link="/rg-admin/main">🏠 대시보드</li>
+    <li data-link="/rg-admin/users/page">👥 유저 관리</li>
+    <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+    <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+    <li data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+    <li data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+    <li class="active" data-link="/rg-admin/qna">❓ Q&A 관리</li>
+    <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+    <li data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+  </ul>
+</nav>
+
+<div class="content">
+
+  <header>
+    <h1>Q&A 관리</h1>
+    <div class="right">
+      <button onclick="location.href='/rg-admin/main'">🏠 홈</button>
+      <button onclick="location.href='/mypage'">마이페이지</button>
+      <button onclick="logout()">로그아웃</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>❓ 질문 목록</h2>
+    <div id="unansweredInfo"
+         style="margin-bottom:12px; font-weight:700; color:#991b1b;">
+    </div>
+
+    <div class="search-box">
+      <input id="keyword" placeholder="제목/내용 검색">
+      <button onclick="loadQna(0)">검색</button>
+    </div>
+
+    <div id="qnaList"></div>
+    <div id="pagination"></div>
+  </main>
+
+</div>
+
+<script type="module">
+import { apiFetch } from "/js/api.js";
+
+let currentPage = 0;  //현재 페이지 번호
+const pageSize = 4; //한 페이지에 보여줄 QnA 개수
+
+//사이드바 메뉴 이동
+document.querySelectorAll("nav li").forEach(li => {
+  li.onclick = () => location.href = li.dataset.link;
+});
+
+//로그아웃 처리
+async function logout() {
+  await apiFetch("/api/users/logout", { method: "POST" });
+  location.href = "/rg-admin/login";
+}
+
+//QnA 목록 로딩
+async function loadQna(page = 0) {
+    currentPage = page;
+
+    const keyword = document.getElementById("keyword").value.trim();
+    const params = new URLSearchParams();
+
+    //페이징 파라미터
+    params.append("page", page);
+    params.append("size", pageSize);
+    if (keyword) params.append("keyword", keyword);
+
+    //QnA 목록 API 호출
+    const res = await apiFetch(`/api/rg-admin/qna/questions?${params}`);
+    const json = await res.json();
+
+    const list = json.data.content;
+
+    const listEl = document.getElementById("qnaList");
+    listEl.innerHTML = "";
+
+    //현재 페이지의 미답변 개수 계산,표시
+    const unansweredCount = list.filter(q => !q.answered).length;
+
+    const infoEl = document.getElementById("unansweredInfo");
+    infoEl.textContent =
+      unansweredCount > 0
+        ? `⚠ 미답변 질문 ${unansweredCount}건 (현재 페이지)`
+        : `✅ 현재 페이지의 모든 질문은 답변 완료되었습니다`;
+
+    //QnA 카드 DOM 생성
+    list.forEach(q => {
+      const div = document.createElement("div");
+      div.className = "qna-card";
+      div.onclick = () => location.href = `/rg-admin/qna/detail?id=${q.id}`;
+
+      div.innerHTML = `
+        <div class="title">${q.title}</div>
+        <div class="meta">
+           ${q.writerName} · ${q.createdAt.substring(0,10)}
+        </div>
+        <div class="badges">
+          <span class="badge ${q.answered ? "answered" : "waiting"}">
+            ${q.answered ? "답변완료" : "⚠ 미답변"}
+          </span>
+          <span class="badge ${q.visibility === "PRIVATE" ? "private" : "public"}">
+            ${q.visibility === "PRIVATE" ? "비공개" : "공개"}
+          </span>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+
+    //페이징 영역 렌더링
+    renderPagination(json.data);
+}
+
+//페이징 버튼 렌더링
+function renderPagination(pageData) {
+    const paginationEl = document.getElementById("pagination");
+    paginationEl.innerHTML = "";
+
+    //totalPages가 1 이하면 페이징 UI 숨김
+    if (!pageData || pageData.totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "◀ 이전";
+    prevBtn.disabled = pageData.first;
+    prevBtn.onclick = () => loadQna(pageData.number - 1);
+
+    const info = document.createElement("span");
+    info.id = "pageInfo";
+    info.textContent = `${pageData.number + 1} / ${pageData.totalPages}`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "다음 ▶";
+    nextBtn.disabled = pageData.last;
+    nextBtn.onclick = () => loadQna(pageData.number + 1);
+
+    paginationEl.appendChild(prevBtn);
+    paginationEl.appendChild(info);
+    paginationEl.appendChild(nextBtn);
+  }
+
+//페이지 최초 진입 시 0페이지 로딩
+loadQna(0);
+</script>
+
+</body>
+</html>

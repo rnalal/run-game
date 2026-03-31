@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>공지사항 관리 - RunGame Admin</title>
+
+  <style>
+    /*전체 관리자 페이지 공통 색상*/
+    :root {
+      --primary:#2563eb;
+      --primary-dark:#1e40af;
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --text-main:#111827;
+      --text-sub:#6b7280;
+
+      --sidebar-bg:#ffffff;
+      --sidebar-text:#374151;
+      --sidebar-hover:#f3f4f6;
+      --sidebar-active:#e0e7ff;
+    }
+
+    /*레이아웃 기본 설정*/
+    body {
+      margin:0;
+      display:flex;
+      height:100vh;
+      background:var(--bg);
+      font-family:'Inter',system-ui,-apple-system;
+      color:var(--text-main);
+      overflow:hidden;
+    }
+
+    /*사이드바*/
+    nav {
+      width:240px;
+      height:100vh;
+      background:var(--sidebar-bg);
+      color:var(--sidebar-text);
+      padding-top:28px;
+      border-right:1px solid var(--border);
+      box-shadow:2px 0 8px rgba(0,0,0,0.04);
+      overflow-y:auto;
+      flex-shrink:0;
+    }
+
+    nav h2 {
+      text-align:center;
+      margin-bottom:24px;
+      color:var(--primary-dark);
+      font-weight:700;
+      letter-spacing:-0.3px;
+    }
+
+    nav ul {
+      list-style:none;
+      margin:0;
+      padding:0;
+   }
+
+    nav li {
+      padding:14px 22px;
+      margin:4px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:background .2s, color .2s;
+      font-size:15px;
+    }
+
+    nav li:hover {
+      background:var(--sidebar-hover);
+    }
+
+    nav li.active {
+      background:var(--sidebar-active);
+      font-weight:600;
+      color:var(--primary-dark);
+    }
+
+    /*우측 전체 콘텐츠 래퍼*/
+    .content {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      overflow:hidden;
+    }
+
+    /*상단 헤더*/
+    header {
+      background:white;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 26px;
+      box-shadow:0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    header h1 {
+      color:var(--primary-dark);
+      font-size:22px;
+      font-weight:700;
+    }
+
+    header button {
+      margin-left:10px;
+      background:var(--primary);
+      color:white;
+      border:none;
+      border-radius:6px;
+      padding:8px 14px;
+      cursor:pointer;
+      font-weight:600;
+      transition:background .15s;
+    }
+
+    header button:hover {
+      background:var(--primary-dark);
+    }
+
+    /*메인 컨텐츠 영역*/
+    main {
+      flex:1;
+      overflow-y:auto;
+      padding:28px;
+    }
+
+    .page-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      margin-bottom:24px;
+      gap:16px;
+    }
+
+    .page-header-title h2 {
+      margin:0;
+      font-size:22px;
+      color:var(--primary-dark);
+      font-weight:700;
+    }
+
+    .page-header-title p {
+      margin:6px 0 0;
+      font-size:14px;
+      color:var(--text-sub);
+    }
+
+    /*상단 버튼 스타일*/
+    .btn-primary,
+    .btn-ghost {
+      padding:9px 14px;
+      border-radius:8px;
+      font-size:14px;
+      cursor:pointer;
+      border:1px solid transparent;
+      transition:all .15s ease;
+    }
+
+    .btn-primary {
+      background:var(--primary);
+      color:white;
+      border-color:var(--primary);
+    }
+
+    .btn-primary:hover {
+      background:var(--primary-dark);
+    }
+
+    .btn-ghost {
+      background:white;
+      color:var(--text-main);
+      border-color:var(--border);
+    }
+
+    .btn-ghost:hover {
+      background:#eef2ff;
+      border-color:#c7d2fe;
+    }
+
+    /*카드 레이아웃*/
+    .card {
+      background:white;
+      padding:20px 24px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      box-shadow:0 4px 10px rgba(0,0,0,0.04);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+
+    .card:hover {
+      transform:translateY(-3px);
+      box-shadow:0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .card-header {
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+
+    /*테이블 래퍼*/
+    .table-wrapper {
+      max-height:520px;
+      overflow-y:auto;
+      border-radius:10px;
+      border:1px solid var(--border);
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+      font-size:14px;
+    }
+
+    thead {
+      position:sticky;
+      top:0;
+      background:#eef2ff;
+      z-index:1;
+    }
+
+    th, td {
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+    }
+
+    tbody tr:hover {
+      background:#f9fafb;
+    }
+
+    /*뱃지 스타일*/
+    .badge-popup {
+      background:#fee2e2;
+      color:#b91c1c;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:500;
+    }
+
+    .badge-normal {
+      background:#e5e7eb;
+      color:#374151;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:500;
+    }
+
+    .badge-target-all {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-target-admin {
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .notice-link {
+      color:#1d4ed8;
+      text-decoration:none;
+    }
+
+    .notice-link:hover {
+      color:var(--primary-dark);
+      text-decoration:underline;
+    }
+
+    /*테이블 내 액션 버튼*/
+    .table-actions button {
+      padding:5px 8px;
+      background:white;
+      border-radius:6px;
+      border:1px solid var(--border);
+      cursor:pointer;
+      font-size:12px;
+      transition:all .15s;
+    }
+
+    .table-actions button:hover {
+      background:#eef2ff;
+      border-color:#c7d2fe;
+    }
+
+    .table-actions .danger {
+      color:#b91c1c;
+      border-color:#fecaca;
+    }
+
+    .table-actions .danger:hover {
+      background:#fee2e2;
+    }
+
+    /*공통 모달 백드롭*/
+    .modal-backdrop {
+      display:none;
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(15,23,42,0.45);
+      justify-content:center;
+      align-items:center;
+      z-index:999;
+    }
+
+    /*모달 공통 스타일*/
+    .modal {
+      background:white;
+      padding:24px;
+      width:480px;
+      max-height:80vh;
+      overflow-y:auto;
+      border-radius:14px;
+      border:1px solid var(--border);
+      box-shadow:0 20px 50px rgba(0,0,0,0.2);
+      animation:fadeIn .15s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:scale(.95); }
+      to { opacity:1; transform:scale(1); }
+    }
+
+    .modal .row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom:10px;
+      gap:4px;
+    }
+
+    .modal input, .modal textarea, .modal select {
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:8px 10px;
+    }
+
+    .modal textarea {
+      resize:vertical;
+      min-height:80px;
+    }
+
+    .modal .actions {
+      text-align:right;
+      margin-top:16px;
+    }
+
+    .modal .actions button {
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .btn-cancel {
+      background:#e5e7eb;
+      color:#374151;
+    }
+
+    .btn-cancel:hover {
+      background:#d1d5db;
+    }
+
+    .btn-confirm {
+      background:var(--primary);
+      color:white;
+     }
+
+    .btn-confirm:hover {
+      background:var(--primary-dark);
+    }
+
+    /*성공 모달 전용 스타일*/
+    .success-icon {
+      text-align:center;
+      font-size:38px;
+      margin-bottom:10px;
+    }
+
+    .success-message {
+      text-align:center;
+      margin-bottom:14px;
+    }
+
+    /*상세 보기 필드, 메타 정보 박스*/
+    .detail-field {
+      background:#f9fafb;
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      white-space:pre-wrap;
+      font-size:14px;
+    }
+
+    .meta-box {
+      background:#f9fafb;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:10px 12px;
+      font-size:14px;
+      line-height:1.5;
+    }
+    .meta-row {
+      display:flex;
+      justify-content:space-between;
+      padding:4px 0;
+    }
+
+    .meta-label {
+      color:#6b7280;
+    }
+    .meta-value {
+      font-weight:600;
+      color:#111827;
+    }
+
+    .detail-inline {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px !important;
+    }
+
+    .sep-dot {
+      color:#6b7280;
+      font-weight:600;
+    }
+
+    /*검색 영역(타이틀,타깃,타입 검색)*/
+    .search-section {
+      margin-bottom: 18px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-section input,
+    .search-section select {
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .search-section button {
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .search-section button:hover {
+      background:#eef2ff;
+      border-color:#c7d2fe;
+    }
+
+    /*페이징 영역*/
+    #pagination button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    #pagination button:hover:not(.active) {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+    }
+
+    #pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+  </style>
+  <link rel="stylesheet" href="/css/popup.css">
+  <script src="/js/popup.js"></script>
+</head>
+<body>
+<nav>
+  <h2>RunGame</h2>
+  <ul>
+    <li data-link="/rg-admin/main">📊 대시보드</li>
+    <li data-link="/rg-admin/users/page">👥 유저 관리</li>
+    <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+    <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+    <li data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+    <li class="active" data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+    <li data-link="/rg-admin/qna">❓ Q&A 관리</li>
+    <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+    <li data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+  </ul>
+</nav>
+
+<div class="content">
+  <header>
+    <h1>공지사항 관리</h1>
+    <div>
+      <button id="homeBtn">🏠 홈</button>
+      <button id="mypageBtn">마이페이지</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <div class="page-header-title">
+        <h2>📢 공지사항</h2>
+        <p>게임 내 공지 / 팝업을 등록·수정·삭제하고, 노출 기간을 관리합니다.</p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost" id="noticeRefreshBtn">↻ 새로고침</button>
+        <button class="btn-primary" id="noticeNewBtn">+ 공지 쓰기</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <strong>공지 목록</strong>
+        <div id="noticeCount">-</div>
+      </div>
+      <div class="search-section">
+        <input id="searchKeyword" placeholder="제목 검색" />
+
+        <select id="searchTarget">
+          <option value="">타깃 전체</option>
+          <option value="ALL">ALL</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+
+        <select id="searchPopup">
+          <option value="">전체</option>
+          <option value="true">팝업</option>
+          <option value="false">일반</option>
+        </select>
+
+        <button id="searchBtn">검색</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="noticeTable">
+          <thead>
+          <tr>
+            <th style="width:60px;">ID</th>
+            <th>제목</th>
+            <th style="width:90px;">타깃</th>
+            <th style="width:90px;">타입</th>
+            <th style="width:220px;">노출 기간</th>
+            <th style="width:160px;">관리</th>
+          </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        <div id="pagination" style="margin-top:12px; display:flex; justify-content:center; gap:6px;"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- 공지 상세 모달 -->
+<div class="modal-backdrop" id="detailModalBackdrop">
+  <div class="modal">
+    <h2>공지 상세보기</h2>
+
+    <div class="row">
+      <label>제목</label>
+      <div class="detail-field" id="detailTitle"></div>
+    </div>
+
+    <div class="row">
+      <label>내용</label>
+      <div class="detail-field" id="detailContent"></div>
+    </div>
+
+    <div class="row">
+      <label>유형 / 타깃</label>
+      <div class="detail-field detail-inline">
+        <span id="detailTypeText" class="badge-normal"></span>
+        <span class="sep-dot">·</span>
+        <span id="detailTargetText"></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>노출 기간</label>
+      <div class="detail-field" id="detailPeriod"></div>
+    </div>
+
+    <div class="row">
+      <label>메타 정보</label>
+      <div class="meta-box">
+        <div class="meta-row">
+          <span class="meta-label">ID</span>
+          <span class="meta-value" id="metaId"></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">생성일</span>
+          <span class="meta-value" id="metaCreated"></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">수정일</span>
+          <span class="meta-value" id="metaUpdated"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-cancel" id="detailCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 공지 등록,수정 모달 -->
+<div class="modal-backdrop" id="editModalBackdrop">
+  <div class="modal">
+    <h2 id="editModalTitle">공지 등록</h2>
+
+    <div class="row">
+      <label>제목</label>
+      <input id="editTitle" />
+    </div>
+
+    <div class="row">
+      <label>내용</label>
+      <textarea id="editContent" rows="5"></textarea>
+    </div>
+
+    <div class="row">
+      <label>팝업 여부</label>
+      <select id="editPopup">
+        <option value="false">일반 공지</option>
+        <option value="true">팝업 공지</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label>타깃 플랫폼</label>
+      <select id="editTarget">
+        <option value="ALL">ALL</option>
+        <option value="ADMIN">ADMIN</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label>게시 시작 시각</label>
+      <input id="editPublishAt" type="datetime-local"/>
+    </div>
+
+    <div class="row">
+      <label>종료 시각</label>
+      <input id="editExpireAt" type="datetime-local"/>
+    </div>
+
+    <div class="actions">
+      <button class="btn-cancel" id="editCancel">취소</button>
+      <button class="btn-confirm" id="editSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 성공 알림 모달 -->
+<div class="modal-backdrop" id="successModalBackdrop">
+  <div class="modal">
+    <div class="success-icon">✅</div>
+    <div class="success-message" id="successMessage">완료되었습니다.</div>
+    <div class="actions" style="text-align:center;">
+      <button class="btn-confirm" id="successOkBtn">확인</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { apiFetch } from "/js/api.js";
+
+  document.addEventListener("DOMContentLoaded", () => {
+
+  //사이드바 네비
+  document.querySelectorAll("nav li").forEach(li => {
+    li.addEventListener("click", () => {
+      location.href = li.dataset.link;
+    });
+  });
+
+  //상단 공통 버튼
+  logoutBtn.onclick = async () => {
+    await apiFetch("/api/users/logout", { method:"POST" });
+    alert("로그아웃되었습니다.");
+    location.href = "/rg-admin/login";
+  };
+  homeBtn.onclick = () => location.href = "/rg-admin/main";
+  mypageBtn.onclick = () => location.href = "/mypage";
+
+  //공통 API 호출 유틸
+  async function call(method, url, body) {
+    const res = await apiFetch(url, {
+      method,
+      headers:{ "Content-Type":"application/json" },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+    try { return JSON.parse(text); } catch { return text; }
+  }
+
+  const noticeTableBody = document.querySelector("#noticeTable tbody");
+  const noticeCount = document.getElementById("noticeCount");
+
+  //현재 검색 상태 + 페이지 정보
+  let currentPage = 0;
+  let currentKeyword = "";
+  let currentTarget = "";
+  let currentPopup = "";
+  const pageSize = 7;
+
+  //공지 목록 조회
+  async function loadNoticeList(page = 0) {
+    currentPage = page;
+
+    const query =
+      `page=${page}&size=${pageSize}` +
+      `&keyword=${encodeURIComponent(currentKeyword)}` +
+      `&target=${currentTarget}` +
+      `&popup=${currentPopup}`;
+
+    try {
+      const data = await call("GET", `/rg-admin/notices?${query}`);
+
+      const content = data?.content ?? [];
+      const totalPages = data.totalPages ?? 1;
+      noticeTableBody.innerHTML = "";
+
+      //결과가 없을 때 메세지 행 출력
+      if (content.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td colspan="6" style="text-align:center; padding:20px; color:#6b7280;">
+            해당하는 공지사항이 없습니다.
+          </td>
+        `;
+        noticeTableBody.appendChild(tr);
+
+        noticeCount.textContent = "총 0건";
+        renderPagination(1); //페이징은 1페이지로 고정
+        return;
+      }
+
+      //공지 데이터 렌더링
+      content.forEach(n => {
+        const period =
+          (n.publishAt ? n.publishAt.substring(0,16).replace("T"," ") : "-") +
+          " ~ " +
+          (n.expireAt ? n.expireAt.substring(0,16).replace("T"," ") : "-");
+
+        const targetClass =
+          n.target === "ADMIN" ? "badge-target-admin" : "badge-target-all";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${n.id}</td>
+          <td><a class="notice-link noticeTitle" data-id="${n.id}" href="#">${n.title}</a></td>
+          <td><span class="${targetClass}">${n.target || "ALL"}</span></td>
+          <td>${n.popup ? "<span class='badge-popup'>팝업</span>" : "<span class='badge-normal'>일반</span>"}</td>
+          <td>${period}</td>
+          <td class="table-actions">
+            <button class="noticeEdit" data-id="${n.id}">수정</button>
+            <button class="noticeDel danger" data-id="${n.id}">삭제</button>
+          </td>
+        `;
+        noticeTableBody.appendChild(tr);
+      });
+
+      noticeCount.textContent = `총 ${data.totalElements ?? 0}건`;
+
+      //행 렌더 후 이벤트 재바인딩
+      bindDetailEvents();
+      bindEditEvents();
+      bindDeleteEvents();
+      renderPagination(totalPages);
+
+    } catch (e) {
+      console.error(e);
+      alert("공지 목록 로딩 실패");
+    }
+  }
+
+  //페이지 렌더링
+  function renderPagination(totalPages) {
+    const p = document.getElementById("pagination");
+    p.innerHTML = "";
+
+    const prev = document.createElement("button");
+    prev.textContent = "◀";
+    prev.disabled = currentPage === 0;
+    prev.onclick = () => loadNoticeList(currentPage - 1);
+    p.appendChild(prev);
+
+    for (let i = 0; i < totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i + 1;
+
+      if (i === currentPage) btn.classList.add("active");
+
+      btn.onclick = () => loadNoticeList(i);
+      p.appendChild(btn);
+    }
+
+    const next = document.createElement("button");
+    next.textContent = "▶";
+    next.disabled = currentPage === totalPages - 1;
+    next.onclick = () => loadNoticeList(currentPage + 1);
+    p.appendChild(next);
+  }
+
+  //검색 버튼 클릭
+  const searchBtn = document.getElementById("searchBtn");
+  searchBtn.onclick = () => {
+    currentKeyword = document.getElementById("searchKeyword").value;
+    currentTarget = document.getElementById("searchTarget").value;
+    currentPopup = document.getElementById("searchPopup").value;
+    loadNoticeList(0);
+  };
+
+  //새로고침 버튼
+  const noticeRefreshBtn = document.getElementById("noticeRefreshBtn");
+  noticeRefreshBtn.onclick = () => loadNoticeList();
+
+  //공지 상세 모달
+  const detailModalBackdrop = document.getElementById("detailModalBackdrop");
+
+  //제목 클릭 시 상세 정보 로딩 및 모달 오픈
+  function bindDetailEvents() {
+    document.querySelectorAll(".noticeTitle").forEach(a => {
+      a.onclick = async (e) => {
+        e.preventDefault();
+        const id = a.dataset.id;
+
+        const n = await call("GET", `/rg-admin/notices/${id}`);
+
+        document.getElementById("detailTitle").textContent = n.title;
+        document.getElementById("detailContent").textContent = n.content;
+
+        document.getElementById("detailTypeText").textContent =
+          n.popup ? "팝업 공지" : "일반 공지";
+
+        document.getElementById("detailTargetText").textContent =
+          n.target || "ALL";
+
+          //타겟 뱃지 색상 클래스 적용
+          const detailTargetEl = document.getElementById("detailTargetText");
+          detailTargetEl.className = ""; //기존 클래스 초기화
+          detailTargetEl.classList.add(
+            n.target === "ADMIN" ? "badge-target-admin" : "badge-target-all"
+          );
+
+        const period =
+          (n.publishAt ? n.publishAt.substring(0,16).replace("T"," ") : "-") +
+          " ~ " +
+          (n.expireAt ? n.expireAt.substring(0,16).replace("T"," ") : "-");
+        document.getElementById("detailPeriod").textContent = period;
+
+        document.getElementById("metaId").textContent = n.id;
+        document.getElementById("metaCreated").textContent =
+          n.createdAt ? n.createdAt.substring(0,19).replace("T"," ") : "-";
+        document.getElementById("metaUpdated").textContent =
+          n.updatedAt ? n.updatedAt.substring(0,19).replace("T"," ") : "-";
+
+        detailModalBackdrop.style.display = "flex";
+      };
+    });
+  }
+
+  //상세 모달 달기
+  document.getElementById("detailCloseBtn").onclick = () => {
+    detailModalBackdrop.style.display = "none";
+  };
+
+  //공지 등록,수정 모달
+  const editModalBackdrop = document.getElementById("editModalBackdrop");
+  const editSave = document.getElementById("editSave");
+
+  //수정 버튼 클릭 시 기존 데이터 로딩 후 모달 오픈
+  function bindEditEvents() {
+    document.querySelectorAll(".noticeEdit").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.id;
+        const n = await call("GET", `/rg-admin/notices/${id}`);
+
+        document.getElementById("editModalTitle").textContent = "공지 수정";
+        editSave.dataset.mode = "edit";
+        editSave.dataset.id = id;
+
+        document.getElementById("editTitle").value = n.title;
+        document.getElementById("editContent").value = n.content;
+        document.getElementById("editPopup").value = n.popup ? "true" : "false";
+        document.getElementById("editTarget").value = n.target || "ALL";
+        document.getElementById("editPublishAt").value = n.publishAt?.substring(0,16) ?? "";
+        document.getElementById("editExpireAt").value = n.expireAt?.substring(0,16) ?? "";
+
+        editModalBackdrop.style.display = "flex";
+      };
+    });
+  }
+
+  //수정,등록 모달 취소
+  document.getElementById("editCancel").onclick = () => {
+    editModalBackdrop.style.display = "none";
+  };
+
+  //새 공지 버튼 클릭 시 빈 폼으로 모달 오픈
+  noticeNewBtn.onclick = () => {
+    document.getElementById("editModalTitle").textContent = "공지 등록";
+
+    editSave.dataset.mode = "create";
+    delete editSave.dataset.id;
+
+    document.getElementById("editTitle").value = "";
+    document.getElementById("editContent").value = "";
+    document.getElementById("editPopup").value = "false";
+    document.getElementById("editTarget").value = "ALL";
+    document.getElementById("editPublishAt").value = "";
+    document.getElementById("editExpireAt").value = "";
+
+    editModalBackdrop.style.display = "flex";
+  };
+
+  //저장 버튼: 등록,수정 공통 처리
+  editSave.onclick = async () => {
+    const mode = editSave.dataset.mode ?? "create";
+    const id = editSave.dataset.id;
+
+    const payload = {
+      title: document.getElementById("editTitle").value,
+      content: document.getElementById("editContent").value,
+      popup: document.getElementById("editPopup").value === "true",
+      publishAt: document.getElementById("editPublishAt").value,
+      expireAt: document.getElementById("editExpireAt").value,
+      target: document.getElementById("editTarget").value,
+    };
+
+    if (!payload.title || !payload.content) {
+      alert("제목과 내용을 입력해주세요.");
+      return;
+    }
+
+    if (mode === "edit") {
+      await call("PUT", `/rg-admin/notices/${id}`, payload);
+      showSuccess("공지 수정이 완료되었습니다.");
+    } else {
+      await call("POST", "/rg-admin/notices", payload);
+      showSuccess("공지 등록이 완료되었습니다.");
+    }
+
+    editModalBackdrop.style.display = "none";
+    loadNoticeList();
+  };
+
+  //삭제 버튼 이벤트
+  function bindDeleteEvents() {
+    document.querySelectorAll(".noticeDel").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.id;
+        if (!confirm(`공지 ${id}를 삭제할까요?`)) return;
+
+        await call("DELETE", `/rg-admin/notices/${id}`);
+        showSuccess("공지 삭제 완료!");
+        loadNoticeList();
+      };
+    });
+  }
+
+  //성공 모달
+  const successModalBackdrop = document.getElementById("successModalBackdrop");
+  function showSuccess(msg) {
+    document.getElementById("successMessage").textContent = msg;
+    successModalBackdrop.style.display = "flex";
+  }
+  document.getElementById("successOkBtn").onclick = () => {
+    successModalBackdrop.style.display = "none";
+  };
+
+  //최초 진입 시 공지 목록 로딩
+  loadNoticeList();
+
+  });
+</script>
+
+</body>
+</html>

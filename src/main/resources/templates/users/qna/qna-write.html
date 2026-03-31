@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QnA 작성 - RunGame</title>
+
+    <style>
+        /*상단 네비 아이콘 공통 스타일*/
+        .nav-icon-btn {
+            position: fixed;
+            top: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(6px);
+        }
+        .nav-back {
+            left: 16px;
+        }
+        .nav-home {
+            right: 16px;
+        }
+
+        /*페이지 기본 스타일*/
+        body {
+            margin:0;
+            background:#0f172a;
+            color:#fff;
+            font-family:'Inter', sans-serif;
+        }
+
+        .container {
+            max-width:800px;
+            margin:80px auto;
+            padding:0 20px;
+        }
+
+        h1 {
+            text-align:center;
+            font-size:32px;
+            margin-bottom:30px;
+            color:#60a5fa;
+        }
+
+        /*입력 요소 공통 스타일*/
+        input, textarea, select {
+            width:100%;
+            padding:12px;
+            margin-bottom:16px;
+            border-radius:10px;
+            border:1px solid #334155;
+            background:#1e293b;
+            color:white;
+            font-size:16px;
+        }
+
+        textarea {
+            min-height:180px;
+            resize: none;
+        }
+
+        /*버튼 영역 스타일*/
+        .btn-group {
+            display:flex;
+            gap:12px;
+            justify-content:center;
+            margin-top:20px;
+        }
+
+        button {
+            padding:12px 20px;
+            border-radius:10px;
+            border:none;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        .btn-primary {
+            background:#3b82f6;
+            color:white;
+        }
+
+        .btn-sub {
+            background:#334155;
+            color:white;
+        }
+
+        /*제목,내용 유효성 에러 메세지 영역*/
+        .error-text {
+            color:#fca5a5;
+            font-size:14px;
+            margin-top:-10px;
+            margin-bottom:12px;
+            display:none;   /*기본은 숨기고 검증 실패 시 보여줌*/
+        }
+
+        /*공개 여부 셀렉트와 아래 필드 간 여백 조정*/
+        select#visibility {
+            margin-bottom:24px;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+    <h1>질문 작성</h1>
+
+    <label style="font-size:14px; color:#94a3b8; display:block; margin-bottom:6px;">
+        질문 공개 설정
+    </label>
+    <select id="visibility">
+        <option value="PUBLIC">공개 질문</option>
+        <option value="PRIVATE">비공개 질문</option>
+    </select>
+
+    <input id="title" placeholder="제목을 입력하세요"/>
+    <div class="error-text" id="titleError"></div>
+
+    <textarea id="content" placeholder="질문 내용을 입력하세요"></textarea>
+    <div class="error-text" id="contentError"></div>
+
+    <div class="btn-group">
+        <button class="btn-primary" id="submitQnaBtn">등록</button>
+        <button class="btn-sub" onclick="location.href='/qna'">취소</button>
+    </div>
+</div>
+
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //QnA 작성 요청 전송 함수
+    async function submitQna() {
+        //이전 에러 메세지 초기화
+        titleError.style.display = "none";
+        contentError.style.display = "none";
+
+        let valid = true;
+
+        //제목 공백 여부 검사
+        if (!title.value.trim()) {
+            titleError.innerText = "제목을 입력해주세요!";
+            titleError.style.display = "block";
+            valid = false;
+        }
+
+        //내용 공백 여부 검사
+        if (!content.value.trim()) {
+            contentError.innerText = "내용을 입력해주세요!";
+            contentError.style.display = "block";
+            valid = false;
+        }
+
+        //둘 중 하나라도 실패하면 서버 요청하지 않음
+        if (!valid) return;
+
+        //서버로 전송할 QnA 작성 페이로드 구성
+        const body = {
+            title: title.value.trim(),
+            content: content.value.trim(),
+            visibility: visibility.value
+        };
+
+        //QnA 작성 API 호출
+        const res = await apiFetch("/api/qna/questions", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+
+        const json = await res.json();
+
+        //성공,실패에 따라 안내 후 이동
+        if (json.success) {
+            alert("등록 완료");
+            location.href = "/qna";
+        } else {
+            alert(json.error || "등록에 실패했습니다.");
+        }
+    }
+
+    //버튼 및 입력 이벤트 바인딩
+    const submitBtn = document.getElementById("submitQnaBtn");
+    submitBtn.onclick = submitQna;
+
+    //입력 도중 에러 메세지 자동 숨김 처리
+    title.addEventListener("input", () => titleError.style.display = "none");
+    content.addEventListener("input", () => contentError.style.display = "none");
+</script>
+
+
+</body>
+</html>

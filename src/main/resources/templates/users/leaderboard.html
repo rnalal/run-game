@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Run Game — Leaderboard</title>
+
+  <style>
+    /*전체 페이지 배경, 기본 폰트 스타일*/
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      padding: 0;
+    }
+
+    /*상단 뒤로가기, 홈 버튼 바 영역*/
+    #topBar {
+      width: 100%;
+      padding: 16px 0px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    /*상단에서 쓰는 공통 버튼 스타일*/
+    .top-btn {
+      padding: 8px 14px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .top-btn:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+
+    /*페이지 타이틀*/
+    h1 {
+      text-align: center;
+      color: #60a5fa;
+      text-shadow: 0 0 8px rgba(96,165,250,0.5);
+      margin: 30px 0 20px 0;
+      font-size: 32px;
+    }
+
+    /*상단 탭 버튼, 기간 버튼 공통 스타일*/
+    .tab-btn, .range-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tab-btn:hover,
+    .range-btn:hover {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    /*활성화된 탭,버튼 상태*/
+    .tab-btn.active,
+    .range-btn.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+
+    /*정렬 기준 탭, 기간 탭 컨테이너*/
+    .tabs, .range-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    /*리더보드 테이블 기본 스타일*/
+    table {
+      width: 90%;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: #1e293b;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /*테이블 헤더 스타일*/
+    th {
+      background: #162033;
+      padding: 14px;
+      border-bottom: 1px solid #334155;
+      color: #93c5fd;
+    }
+
+    /*테이블 셀 스타일*/
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #334155;
+      text-align: center;
+    }
+
+    /*테이블 행 hover 시 하이라이트*/
+    tr:hover {
+      background: rgba(37,99,235,0.18);
+      transition: 0.2s;
+    }
+
+    /*페이지네이션 영역 컨테이너*/
+    .pagination {
+      margin: 24px 0;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /*페이지네이션 버튼 스타일*/
+    .pagination button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: #2563eb;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    /*비활성화된 페이지 버튼 스타일*/
+    .pagination button:disabled {
+      background: #334155;
+      cursor: not-allowed;
+    }
+
+    /*현재 페이지, 전체 페이지 표시 텍스트*/
+    #pageInfo {
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- 상단 네비게이션 -->
+<div id="topBar">
+  <button class="top-btn" onclick="history.back()">⬅</button>
+  <button class="top-btn" onclick="location.href='/'">🏠</button>
+</div>
+
+<h1>🏆 Run Game Leaderboard</h1>
+
+<!-- 정렬 기준 탭 -->
+<div class="tabs">
+  <button class="tab-btn active" data-type="score">🏅 점수</button>
+  <button class="tab-btn" data-type="distance">📏 거리</button>
+  <button class="tab-btn" data-type="coins">💰 코인</button>
+</div>
+
+<!-- 기간 필터 -->
+<div class="range-tabs">
+  <button class="range-btn active" data-range="all">전체</button>
+  <button class="range-btn" data-range="7d">최근 7일</button>
+  <button class="range-btn" data-range="30d">최근 30일</button>
+</div>
+
+<!-- 리더보드 테이블 -->
+<table id="leaderboardTable">
+  <thead>
+  <tr>
+    <th>Rank</th>
+    <th>Nickname</th>
+    <th>Score</th>
+    <th>Distance</th>
+    <th>Coins</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- 페이지네이션 -->
+<div class="pagination">
+  <button id="prevBtn">⬅ 이전</button>
+  <span id="pageInfo"></span>
+  <button id="nextBtn">다음 ➡</button>
+</div>
+
+<script type="module">
+  import { apiFetch } from "/js/api.js";
+
+  const API_BASE = "/api/leaderboard";
+  let currentPage = 0;  //현재 페이지 번호
+  let currentType = "score";  //현재 정렬 기준
+  let currentRange = "all"; //현재 기간 필터
+  const size = 10;  //한 페이지에 보여줄 데이터 개수
+
+  const tabButtons = document.querySelectorAll(".tab-btn"); //상단 정렬 탭 버튼들
+  const rangeButtons = document.querySelectorAll(".range-btn"); //기간 필터 버튼들
+
+  //정렬 기준 탭 클릭 이벤트 바인딩
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentType = btn.dataset.type;
+      currentPage = 0;
+      loadLeaderboard();
+    });
+  });
+
+  //기간 필터 탭 클릭 이벤트 바인딩
+  rangeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      rangeButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentRange = btn.dataset.range;
+      currentPage = 0;
+      loadLeaderboard();
+    });
+  });
+
+  //이전 페이지 버튼
+  document.getElementById("prevBtn").addEventListener("click", () => {
+    if (currentPage > 0) {
+      currentPage--;
+      loadLeaderboard();
+    }
+  });
+
+  //다음 페이지 버튼
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    currentPage++;
+    loadLeaderboard();
+  });
+
+  //리더보드 데이터 요청 및 렌더링 함수
+  async function loadLeaderboard() {
+    const url =
+      `${API_BASE}?type=${currentType}&range=${currentRange}&page=${currentPage}&size=${size}`;
+
+    try {
+      const res = await apiFetch(url);
+      if (!res.ok) throw new Error("API Error");
+
+      const data = await res.json();
+      renderTable(data.content);
+      updatePagination(data);
+    } catch (e) {
+      alert("데이터 로드 실패");
+    }
+  }
+
+  //테이블에 리더보드 데이터 렌더링
+  function renderTable(entries) {
+    const tbody = document.querySelector("#leaderboardTable tbody");
+    tbody.innerHTML = "";
+
+    //데이터 없을 때 처리
+    if (!entries || entries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5">⚪ 데이터가 없습니다</td></tr>`;
+      return;
+    }
+
+    //각 랭킹 데이터에 대해 행 생성
+    entries.forEach((entry, i) => {
+      const rank = entry.rank ?? (currentPage * size + i + 1);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${rank}</td>
+        <td>${entry.nickname || "-"}</td>
+        <td>${entry.bestScore ?? 0}</td>
+        <td>${entry.bestDistance ?? 0}</td>
+        <td>${entry.bestCoins ?? 0}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  //페이지네이션 텍스트, 버튼 상태 업데이트
+  function updatePagination(data) {
+    document.getElementById("pageInfo").textContent =
+      `페이지 ${data.number + 1} / ${data.totalPages}`;
+
+    document.getElementById("prevBtn").disabled = data.first;
+    document.getElementById("nextBtn").disabled = data.last;
+  }
+
+  //페이지 로드 시 최초 한 번 리더보드 로딩
+  loadLeaderboard();
+</script>
+
+</body>
+</html>

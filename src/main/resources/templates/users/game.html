@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>RunGame</title>
+    <link rel="icon" href="data:,">
+
+    <style>
+        /*공통 레이아웃 기본 스타일*/
+        body {
+            margin: 0;
+            background: #0f172a;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /*HUD*/
+        #hud {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 58px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            font-size: 18px;
+            box-sizing: border-box;
+        }
+        #hud-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        #hud-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-right: 12px;
+        }
+
+        /*현재 레벨 표시 텍스트*/
+        #levelState {
+            font-size: 22px;
+            font-weight: 700;
+            color: #facc15;
+            text-shadow: 0 0 8px rgba(250, 204, 21, 0.9);
+        }
+
+        /*게임 종료 버튼*/
+        #endBtn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 0 8px rgba(239,68,68,0.5);
+        }
+        #endBtn:hover {
+            background: #dc2626;
+        }
+
+        /*캔버스를 감싸는 영역*/
+        #gamewrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 100px;
+        }
+
+        /*실제 게임 캔버스 영역*/
+        #game {
+            display: block;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(6px);
+
+            width: 1280px;
+            height: 426px;
+            max-width: 90vw;
+            max-height: 50vh;
+
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+        }
+
+        /*공통 오버레이*/
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            color: #fff;
+        }
+
+        /*오버레이 내부 카드 공통 스타일*/
+        .overlay-card {
+            background: rgba(15,23,42,0.9);
+            border-radius: 24px;
+            padding: 32px 40px 28px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+            text-align: center;
+            max-width: 520px;
+            border: 1px solid rgba(148,163,184,0.45);
+        }
+
+        /*공통 primary 버튼 스타일*/
+        .primary-btn {
+            font-size: 20px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            background: linear-gradient(90deg,#2563eb,#38bdf8);
+            color: white;
+            box-shadow: 0 0 18px rgba(56,189,248,0.7);
+        }
+        .primary-btn:hover {
+            filter: brightness(1.05);
+            box-shadow: 0 0 22px rgba(56,189,248,0.9);
+        }
+
+        /*시작 오버레이 배경,타이틀*/
+        #startOverlay {
+            background: radial-gradient(circle at top, rgba(59,130,246,0.6), rgba(15,23,42,0.95));
+        }
+        #startCard h1 {
+            font-size: 40px;
+            margin: 0 0 8px;
+        }
+        #startSubtitle {
+            font-size: 15px;
+            color: #cbd5f5;
+            margin-bottom: 24px;
+        }
+
+        /*시작 카드 내부 상단 네비 버튼 레이아웃*/
+        .start-card-top-nav {
+            position: relative;
+            width: 100%;
+            height: 0;
+        }
+
+        .start-card-btn {
+            position: absolute;
+            top: -10px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: 0.2s;
+            z-index: 10;
+        }
+
+        .start-card-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .start-card-back  {
+            left: -10px;
+        }
+        .start-card-home  {
+            right: -10px;
+        }
+
+        /*시작 오버레이 내 조작 설명 영역*/
+        #controls {
+            margin-top: 22px;
+            font-size: 14px;
+            opacity: 0.95;
+            line-height: 1.6;
+            text-align: left;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+        }
+        #controls-section-title {
+            grid-column: 1 / -1;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 4px;
+        }
+        .controls-group-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e5e7eb;
+        }
+        .controls-item {
+            color: #cbd5f5;
+            font-size: 13px;
+        }
+        .keycap {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(148,163,184,0.7);
+            background: rgba(15,23,42,0.9);
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        /*게임 오버 오버레이*/
+        #gameOverOverlay {
+            background: radial-gradient(circle at center, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+            display: none;
+        }
+        #gameOverCard h2 {
+            font-size: 32px;
+            margin: 0 0 12px;
+        }
+        #gameOverStats {
+            margin: 16px 0 24px;
+            font-size: 16px;
+            color: #e5e7eb;
+        }
+        #gameOverStats div {
+            margin: 4px 0;
+        }
+        #gameOverStats span.value {
+            font-weight: 600;
+            color: #facc15;
+        }
+
+        /*레벨업 토스트 알림*/
+        #levelUpNotice {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            background: rgba(250, 204, 21, 0.12);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.5);
+            font-size: 28px;
+            font-weight: 700;
+            border-radius: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            text-shadow: 0 0 16px rgba(250, 204, 21, 1);
+            z-index: 3500;
+        }
+        #levelUpNotice.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-6px);
+        }
+
+        /*디버그용, 숨겨야 하는 요소 강제 숨김*/
+        .debug, #SESS_BASE, #sessionId,
+        #seq, #queued, #pausedState, #slidingState,
+        #btnStart, #btnFlush, #btnEnd, #btnCoin,
+        #btnHit, #btnGameOver, #btnHitThenOver,
+        #btnSlideStart, #btnSlideEnd,
+        #powerupName, #powerupDur, #btnPowerup,
+        #checkpointDist, #btnCheckpointNext,
+        #btnCheckpointReset, #cpWeighted,
+        #lastGainState, #x2State {
+            display: none !important;
+        }
+
+        /*HUD 우측 일시정지 버튼*/
+        #pauseBtn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 18px;
+
+            box-shadow: 0 0 10px rgba(255,255,255,0.25);
+        }
+        #pauseBtn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /*일시정시 상태 시 HUD, 게임 비주얼 처리*/
+        #game, #hud {
+            transition: filter 0.25s ease, opacity 0.25s ease;
+        }
+
+        body.paused #game {
+            filter: brightness(0.6) saturate(0.8);
+        }
+
+        body.paused #hud {
+            opacity: 0.6;
+        }
+
+        /*일시정지 오버레이*/
+        #pauseOverlay {
+            background: rgba(15,23,42,0.75);
+            backdrop-filter: blur(2px);
+        }
+
+        /*레벨, 진행도 progress bar 영역*/
+        #worldProgress {
+          width: min(1000px, 92vw);
+          margin-top: 64px;
+        }
+
+        /*바탕 바*/
+        #worldBar {
+          position: relative;
+          height: 18px;
+          border-radius: 999px;
+          overflow: visible;
+          background:
+            repeating-linear-gradient(
+              45deg,
+              rgba(255,255,255,0.08),
+              rgba(255,255,255,0.08) 10px,
+              rgba(255,255,255,0.15) 10px,
+              rgba(255,255,255,0.15) 20px
+            );
+        }
+
+        /*실제 진행도 채워지는 영역*/
+        #worldFill {
+          height: 100%;
+          width: 0%;
+          background: linear-gradient(
+            90deg,
+            #38bdf8 0%,
+            #60a5fa 50%,
+            #facc15 100%
+          );
+          border-radius: 999px;
+          transition: width 0.3s cubic-bezier(.4,1.4,.6,1);
+        }
+
+        /*플레이어 위치를 나타내는 이모지 마커*/
+        #playerMarker {
+          position: absolute;
+          top: -36px;
+          left: 0%;
+          font-size: 26px;
+          pointer-events: none;
+          transition: left 0.3s cubic-bezier(.4,1.4,.6,1);
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+          transform: translateX(-50%) scaleX(-1);
+        }
+
+        /*레벨 단계 표시 노드 공통 스타일*/
+        .level-node {
+          position: absolute;
+          top: -52px;
+          transform: translateX(-50%);
+          font-size: 12px;
+          color: #94a3b8;
+          transition: all 0.25s ease;
+        }
+
+        .level-node::before {
+          content: "";
+          position: absolute;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #64748b;
+        }
+
+        /*이미 지나간 레벨 노드*/
+        .level-node.passed {
+          color: #38bdf8;
+        }
+
+        .level-node.passed::before {
+          background: #38bdf8;
+        }
+
+        /*현재 활성 레벨 노드*/
+        .level-node.active {
+          color: #facc15;
+          font-weight: 700;
+        }
+        .level-node.active::before {
+          background: #facc15;
+          box-shadow: 0 0 12px rgba(250,204,21,1);
+          animation: pulse 1.2s infinite;
+        }
+
+        /*활성 레벨 노드 펄스 애니메이션*/
+        @keyframes pulse {
+          0% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.3); }
+          100% { transform: translateX(-50%) scale(1); }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<!-- HUD -->
+<div id="hud">
+    <div id="hud-left">
+        <span>Score: <span id="scoreState">0</span></span>
+        <span>Coins: <span id="coinsState">0</span></span>
+        <span>Level: <span id="levelState">1</span></span>
+    </div>
+    <div id="hud-right">
+        <button id="pauseBtn" title="일시정지">⏸</button>
+
+        <span>Lives: <span id="livesState">❤️❤️❤️</span></span>
+        <span>Shield: <span id="shieldState">🛡️🛡️🛡️</span></span>
+
+        <button id="endBtn">게임 종료</button>
+    </div>
+</div>
+
+<!-- Canvas -->
+<div id="gamewrap">
+    <canvas id="game" width="960" height="320"></canvas>
+</div>
+
+<!-- Progress Bar -->
+<div id="worldProgress">
+
+    <div id="worldBar">
+        <div id="worldFill"></div>
+
+        <div id="playerMarker">🐇</div>
+
+        <!-- 레벨 노드 -->
+        <div class="level-node" data-level="0" style="left:0%">START</div>
+        <div class="level-node" data-level="1" style="left:10%">1</div>
+        <div class="level-node" data-level="2" style="left:20%">2</div>
+        <div class="level-node" data-level="3" style="left:30%">3</div>
+        <div class="level-node" data-level="4" style="left:40%">4</div>
+        <div class="level-node" data-level="5" style="left:50%">5</div>
+        <div class="level-node" data-level="6" style="left:60%">6</div>
+        <div class="level-node" data-level="7" style="left:70%">7</div>
+        <div class="level-node" data-level="8" style="left:80%">8</div>
+        <div class="level-node" data-level="9" style="left:90%">9</div>
+        <div class="level-node goal" data-level="10" style="left:100%">GOAL</div>
+    </div>
+
+</div>
+
+<!-- Start Overlay -->
+<div id="startOverlay" class="overlay">
+    <div id="startCard" class="overlay-card">
+        <!-- 카드 내부 상단 네비게이션 -->
+        <div class="start-card-top-nav">
+            <button class="start-card-btn start-card-back" onclick="history.back()">←</button>
+            <button class="start-card-btn start-card-home" onclick="location.href='/'">🏠</button>
+        </div>
+        <h1>🏃‍♂️ RunGame</h1>
+        <div id="startSubtitle">키보드로 조작하는 러닝 게임 · 코인을 모으고 끝까지 달려보세요!</div>
+
+        <button id="startBtn" class="primary-btn">게임 시작</button>
+
+        <div id="controls">
+            <div id="controls-section-title">🎮 조작 방법</div>
+
+            <div>
+                <div class="controls-group-title">이동 & 액션</div>
+                <div class="controls-item">
+                    <span class="keycap">↑</span> 점프
+                </div>
+                <div class="controls-item">
+                    <span class="keycap">↓</span> 슬라이드
+                </div>
+                <div class="controls-item">
+                    <span class="keycap">→</span> 스프린트(가속)
+                </div>
+                <div class="controls-item">
+                    <span class="keycap">←</span> 역주행(뒤로 이동)
+                </div>
+            </div>
+
+            <div>
+                <div class="controls-group-title">파워업</div>
+                <div class="controls-item">
+                    <span class="keycap">M</span> MAGNET (코인 자동 수집)
+                </div>
+                <div class="controls-item">
+                    <span class="keycap">S</span> SHIELD (최대 3회 사용 가능)
+                </div>
+                <div class="controls-item">
+                    <span class="keycap">X</span> SCORE X2 (점수 2배)
+                </div>
+                <div class="controls-item">
+                    🌬 바람 아이템: 초고속 질주 & 장애물 무적
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Game Over Overlay -->
+<div id="gameOverOverlay" class="overlay">
+    <div id="gameOverCard" class="overlay-card">
+        <h2 id="gameOverTitle">🏁 Game Over</h2>
+        <div id="gameOverStats">
+            <div>최종 점수 : <span id="finalScore" class="value">0</span></div>
+            <div>모은 코인 : <span id="finalCoins" class="value">0</span></div>
+            <div>도달 레벨 : <span id="finalLevel" class="value">1</span></div>
+        </div>
+        <button id="restartBtn" class="primary-btn">다시 시작하기</button>
+    </div>
+</div>
+
+<!-- Pause Overlay -->
+<div id="pauseOverlay" class="overlay" style="display:none;">
+    <div class="overlay-card">
+        <h2 style="font-size: 34px; margin-bottom: 16px;">⏸ 일시정지</h2>
+        <p style="color:#cbd5f5; margin-bottom: 28px;">
+            잠시 쉬어가도 괜찮아요 🙂
+        </p>
+        <button id="resumeBtn" class="primary-btn">다시 시작</button>
+    </div>
+</div>
+
+<!-- 레벨업 알림 -->
+<div id="levelUpNotice">LEVEL UP!</div>
+
+<script type="module" src="/js/game/main.js"></script>
+
+</body>
+</html>

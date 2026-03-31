@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>QnA 상세</title>
+
+  <style>
+    /*상단 네비 아이콘 버튼*/
+    .nav-icon-btn {
+      position: fixed;
+      top: 16px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 9999;
+      backdrop-filter: blur(6px);
+    }
+
+    .nav-back {
+      left: 16px;
+    }
+
+    .nav-home {
+      right: 16px;
+    }
+
+    /*페이지 기본 스타일*/
+    body {
+      margin:0;
+      background:#0f172a;
+      color:white;
+      font-family:'Inter', sans-serif;
+    }
+
+    .container {
+      max-width:800px;
+      margin:80px auto;
+      padding:0 20px;
+    }
+
+    /*페이지 타이틀, 질문 제목*/
+    h1.page-title {
+      font-size:32px;
+      text-align:center;
+      margin-bottom:26px;
+      color:#60a5fa;
+      text-shadow:0 0 8px rgba(96,165,250,0.45);
+      font-weight:700;
+    }
+
+    .qna-title {
+      font-size:26px;
+      font-weight:600;
+      margin-bottom:12px;
+      margin-top:6px;
+    }
+
+    /*질문 작성자, 날짜 메타 정보*/
+    .qna-meta {
+      color:#94a3b8;
+      margin-bottom:20px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .meta-box {
+      display:flex;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    /*상태,공개 여부 배지 스타일*/
+    .badge {
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .public   {
+      background:#1e40af;
+    }
+    .private  {
+      background:#7c2d12;
+    }
+    .answered {
+      background:#065f46;
+    }
+    .waiting  {
+      background:#374151;
+    }
+
+    /*질문 내용 영역*/
+    .content {
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:14px;
+      padding:20px;
+      white-space:pre-wrap;
+      text-align: left;
+    }
+
+    /*관리자 답변 박스*/
+    .answer-box {
+      margin-top:32px;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid #1d4ed8;
+      background:#0b1220;
+    }
+
+    .answer-header {
+      background:rgba(59,130,246,0.15);
+      border-bottom:1px solid rgba(59,130,246,0.3);
+      padding:14px 18px;
+      font-weight:700;
+      color:#93c5fd;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .answer-content {
+      background:rgba(59,130,246,0.15);
+      padding:14px 18px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /*하단 액션 버튼 영역*/
+    .actions {
+      margin-top:40px;
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+    }
+
+    .action-btn {
+      padding:10px 18px;
+      border-radius:10px;
+      font-weight:600;
+      cursor:pointer;
+      border:1px solid transparent;
+    }
+
+    .action-edit {
+      background:rgba(59,130,246,0.15);
+      border:1px solid #3b82f6;
+      color:#93c5fd;
+    }
+
+    .action-edit.disabled {
+      opacity:0.4;
+      cursor:not-allowed;
+    }
+
+    .action-delete {
+      background:rgba(239,68,68,0.15);
+      border:1px solid #ef4444;
+      color:#fca5a5;
+    }
+
+    .action-list {
+      background:#1e293b;
+      border:1px solid #334155;
+      color:#e5e7eb;
+    }
+
+  </style>
+  <link rel="stylesheet" href="/css/popup.css">
+  <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+
+  <h1 class="page-title">질문 상세</h1>
+  <h1 class="qna-title" id="title"></h1>
+  <div class="qna-meta">
+    <span id="info"></span>
+  </div>
+
+  <div class="meta-box" id="badges"></div>
+  <div class="content" id="content"></div>
+  <div id="answerArea"></div>
+
+  <div class="actions">
+    <button id="deleteBtn" class="action-btn action-delete" style="display:none;">삭제</button>
+    <button id="editBtn" class="action-btn action-edit" style="display:none;">수정</button>
+    <button class="action-btn action-list" onclick="location.href='/qna'">목록</button>
+  </div>
+</div>
+
+<script type="module">
+  import { apiFetch } from "/js/api.js";
+
+  //URL 쿼리에서 질문 ID 추출
+  const id = new URLSearchParams(location.search).get("id");
+
+  //질문 상세 로딩
+  async function load() {
+    let res;
+    let json;
+
+    try {
+      res = await apiFetch(`/api/qna/questions/${id}`);
+      json = await res.json();
+    } catch (e) {
+      alert("서버와 통신할 수 없습니다.");
+      return;
+    }
+
+    //권한 오류,비공개 등 에러 응답 처리
+    if (!res.ok) {
+      handleAccessError(json);
+      return;
+    }
+
+    const q = json.data;
+
+    //제목,기본 정보 출력
+    title.innerText = q.title;
+    info.innerText = `${q.writerName} · ${q.createdAt.substring(0,10)}`;
+
+    //공개,비공개,답변 상태 배지 렌더링
+    badges.innerHTML = `
+      <span class="badge ${q.visibility === "PRIVATE" ? "private" : "public"}">
+        ${q.visibility === "PRIVATE" ? "비공개" : "공개"}
+      </span>
+      <span class="badge ${q.status === "ANSWERED" ? "answered" : "waiting"}">
+        ${q.status === "ANSWERED" ? "답변완료" : "미답변"}
+      </span>
+    `;
+
+    //질문 본문 출력
+    content.innerText = q.content;
+
+    //관리자 답변이 있는 경우 답변 영역 렌더링
+    if (q.answer) {
+      answerArea.innerHTML = `
+        <div class="answer-box">
+          <div class="answer-header">관리자 답변</div>
+          <div class="answer-content">${q.answer.content}</div>
+        </div>
+      `;
+    }
+
+    const editBtn = document.getElementById("editBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+
+    //내 질문 + 아직 답변 전이면 수정,삭제 버튼 노출
+    if (q.mine && q.status !== "ANSWERED") {
+      editBtn.style.display = "inline-flex";
+      deleteBtn.style.display = "inline-flex";
+
+      //수정 페이지로 이동
+      editBtn.onclick = () => {
+        location.href = `/qna/edit?id=${id}`;
+      };
+
+      //질문 삭제 처리
+      deleteBtn.onclick = async () => {
+        if (!confirm("정말 이 질문을 삭제하시겠습니까?")) return;
+
+        const res = await apiFetch(`/api/qna/questions/${id}`, {
+          method: "DELETE"
+        });
+
+        if (res.ok) {
+          alert("삭제되었습니다.");
+          location.href = "/qna";
+        } else {
+          const err = await res.json();
+          alert(err.message || "삭제에 실패했습니다.");
+        }
+      };
+    }
+  }
+
+  //접근 권한 관련 에러 처리
+  function handleAccessError(err) {
+
+    if (err.code === "LOGIN_REQUIRED") {
+      document.querySelector(".container").innerHTML = `
+        <h1 class="page-title">🔐 로그인 필요</h1>
+        <div class="content">
+          비공개 질문은 로그인 후 확인할 수 있습니다.
+        </div>
+        <div class="actions">
+          <button class="action-btn action-edit"
+            onclick="location.href='/login'">
+            로그인
+          </button>
+          <button class="action-btn action-list"
+            onclick="history.back()">
+            뒤로가기
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    if (err.code === "PRIVATE_QUESTION") {
+      document.querySelector(".container").innerHTML = `
+        <h1 class="page-title">🔒 비공개 질문</h1>
+        <div class="content">
+          이 질문은 작성자만 확인할 수 있습니다.
+        </div>
+        <div class="actions">
+          <button class="action-btn action-list"
+            onclick="history.back()">
+            목록으로
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    //기타 예외 상항: 알림 후 이전 화면으로
+    alert(err.message || "요청을 처리할 수 없습니다.");
+    history.back();
+  }
+
+  //초기 진입 시 상세 로딩
+  load();
+</script>
+
+
+</body>
+</html>

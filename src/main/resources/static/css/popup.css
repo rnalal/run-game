@@ -1,0 +1,115 @@
+/*
+공용 팝업 레이어웃 스타일
+- .popup-backdrop: 전체 화면을 덮는 반투명 배경
+- .popup-window: 중앙에 뜨는 팝업 박스
+- .slide-btn: 여러 팝업이 있을 때 좌우 이동 버튼
+*/
+
+/* 팝업 배경 */
+.popup-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 팝업 박스 레이아웃 */
+.popup-window {
+  width: 360px;
+  background: white;
+  color: black;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 10px 40px rgba(0,0,0,0.4);
+  position: relative;
+  text-align: left;
+}
+
+/* 팝업 안 체크박스 */
+.popup-window input[type="checkbox"] {
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+
+/* 체크박스 라벨 */
+.popup-window label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: auto !important;
+}
+
+/* 팝업 제목 스타일 */
+.popup-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* 팝업 본문 텍스트 스타일 */
+.popup-content {
+  font-size: 15px;
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+}
+
+/* 팝업 닫기 버튼 */
+.popup-close-btn {
+  width: 100%;
+  padding: 10px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* 팝업 닫기 버튼 호버 스타일 */
+.popup-close-btn:hover {
+  background: #2563eb;
+}
+
+/* 팝업 좌우 이동 화살표 공통 스타일 */
+.slide-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #d1d5db;
+  color: #111;
+  cursor: pointer;
+  border-radius: 50%;
+
+  font-size: 18px;
+}
+
+/* 슬라이드 버튼 호버 스타일 */
+.slide-btn:hover {
+  background: rgba(255,255,255,1);
+}
+
+/* 이전 팝업 이동 버튼 위치 */
+.prev-btn {
+  left: -45px;
+}
+
+/* 다음 팝업 이동 버튼 위치 */
+.next-btn {
+  right: -45px;
+}
+
+

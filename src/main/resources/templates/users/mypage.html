@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RunGame 마이페이지</title>
+
+    <style>
+        /*공통 네비 아이콘 버튼*/
+        .nav-icon-btn {
+            position: fixed;
+            top: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+
+            backdrop-filter: blur(6px);
+            transition: 0.2s;
+        }
+
+        .nav-icon-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /*뒤로가기 버튼 위치*/
+        .nav-back {
+            left: 16px;
+        }
+
+        /*홈 버튼 위치*/
+        .nav-home {
+            right: 16px;
+        }
+
+        .with-nav-padding {
+            margin-top: 80px;
+        }
+
+        /*공통 색상, 테마 변수 정의*/
+        :root {
+            --primary:#3b82f6;
+            --primary-dark:#60a5fa;
+            --bg:#0f172a;
+            --card:#1e293b;
+            --card2:#162033;
+            --text:#f8fafc;
+            --border:#334155;
+            --sub:#94a3b8;
+            --danger:#ef4444;
+        }
+
+        /*페이지 전체 기본 스타일*/
+        body {
+            margin:0;
+            background:var(--bg);
+            font-family:'Inter',sans-serif;
+            color:var(--text);
+        }
+
+        /*메인 컨테이너*/
+        .container {
+            max-width:960px;
+            margin:0 auto;
+            padding:32px 20px;
+        }
+
+        /*페이지 타이틀*/
+        h1 {
+            text-align:center;
+            color:#60a5fa;
+            text-shadow:0 0 8px rgba(96,165,250,0.5);
+            margin-bottom:32px;
+            font-size:32px;
+        }
+
+        /*공통 파란색 버튼 스타일*/
+        .btn {
+            background:#3b82f6;
+            padding:10px 16px;
+            border:none;
+            border-radius:8px;
+            color:white;
+            cursor:pointer;
+            font-weight:600;
+            transition:0.2s;
+        }
+
+        .btn:hover {
+            background:#60a5fa;
+            box-shadow:0 0 10px rgba(96,165,250,0.4);
+        }
+
+        /*카드 레이아웃을 위한 그리드*/
+        .grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap:20px;
+        }
+
+        /*마이페이지 내 카드 공통 스타일*/
+        .card {
+            background:var(--card);
+            padding:20px;
+            border-radius:12px;
+            border:1px solid var(--border);
+            box-shadow:0 0 10px rgba(0,0,0,0.3);
+            animation:fadeIn .6s;
+        }
+
+        /*카드 등장 애니메이션*/
+        @keyframes fadeIn {
+            from { opacity:0; transform:translateY(10px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        .card-title {
+            font-size:20px;
+            font-weight:600;
+            margin-bottom:14px;
+            color:#60a5fa;
+        }
+
+        /*프로필 정보 한 줄*/
+        .profile-row {
+            margin-bottom:10px;
+            font-size:16px;
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+
+        /*프로필 라벨*/
+        .label {
+            color:var(--sub);
+            margin-right:6px;
+            min-width:70px;
+        }
+
+        /*한 줄 안에서 사용하는 작은 버튼*/
+        .inline-btn {
+            margin-left:8px;
+            padding:4px 8px;
+            font-size:12px;
+            border-radius:6px;
+            border:none;
+            background:#475569;
+            color:#e5e7eb;
+            cursor:pointer;
+        }
+
+        .inline-btn:hover {
+            background:#64748b;
+        }
+
+        /*최근 세션 리스트 스크롤 영역*/
+        .session-list {
+            max-height:260px;
+            overflow-y:auto;
+            padding-right:6px;
+        }
+
+        /*세션 아이템 한 개 스타일*/
+        .session-item {
+            padding:12px;
+            background:var(--card2);
+            border-radius:8px;
+            margin-bottom:10px;
+            border:1px solid var(--border);
+            font-size:14px;
+        }
+
+        /*랭킹 리스트 스크롤 영역*/
+        .rank-list {
+            max-height:260px;
+            overflow-y:auto;
+            padding-right:6px;
+        }
+
+        /*랭킹 아이템 한 줄 스타일*/
+        .rank-item {
+            padding:8px 10px;
+            background:var(--card2);
+            border-radius:8px;
+            margin-bottom:6px;
+            border:1px solid var(--border);
+            font-size:14px;
+        }
+
+        /*랭킹 카드 상단*/
+        .rank-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:10px;
+        }
+
+        /*기간 선택 select 공통 스타일*/
+        select {
+            background:var(--card2);
+            color:var(--text);
+            border-radius:8px;
+            border:1px solid var(--border);
+            padding:6px 10px;
+        }
+
+        /*공통 모달 배경*/
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.7); /* 어두운 반투명 배경 */
+            display: none;                      /* 처음엔 숨김 */
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+        }
+
+        /*모달 콘텐츠 박스*/
+        .modal {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 360px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        /*모달 입력 영역 한 줄*/
+        .modal-row {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .modal-row label {
+            font-size: 14px;
+            color: var(--sub);
+        }
+
+        .modal-row input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card2);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        /*모달 하단 버튼 영역*/
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        /*서브 버튼 스타일*/
+        .btn-secondary {
+            background: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #64748b;
+        }
+
+        /*모달 내 에러 메세지*/
+        .error-text {
+            color: var(--danger);
+            font-size: 13px;
+            min-height: 18px;
+            margin-top: 4px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<!-- 공통 네비 -->
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+    <h1>
+        마이페이지
+        <span id="myRank" style="font-size:20px; color:#94a3b8; margin-left:10px;"></span>
+    </h1>
+
+    <div class="grid">
+
+        <!-- 내 정보 카드 -->
+        <div class="card">
+            <div class="card-title">👤 내 정보</div>
+
+            <div class="profile-row">
+                <span class="label">닉네임</span>
+                <span id="nickname">-</span>
+                <button class="inline-btn" id="editNicknameBtn">수정</button>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">이메일</span>
+                <span id="email">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">가입일</span>
+                <span id="createdAt">-</span>
+            </div>
+
+            <button class="btn" id="changePwdBtn" style="margin-top:16px;width:100%;">🔐 비밀번호 변경</button>
+            <button class="btn" id="deleteAccountBtn"
+                    style="margin-top:16px;width:100%;background:#ef4444;">
+                ❌ 회원 탈퇴
+            </button>
+        </div>
+
+        <!-- 플레이 요약 -->
+        <div class="card">
+            <div class="card-title">📊 플레이 요약</div>
+
+            <div class="profile-row">
+                <span class="label">총 점수</span>
+                <span id="sumScore">-</span>
+            </div>
+            <div class="profile-row">
+                <span class="label">Best 점수</span>
+                <span id="bestScore">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">총 거리(px)</span>
+                <span id="sumDistance">-</span>
+            </div>
+            <div class="profile-row">
+                <span class="label">Best 거리(px)</span>
+                <span id="bestDistance">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">총 코인</span>
+                <span id="sumCoins">-</span>
+            </div>
+            <div class="profile-row">
+                <span class="label">Best 코인</span>
+                <span id="bestCoins">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">플레이 횟수</span>
+                <span id="sessionCount">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">평균 점수</span>
+                <span id="avgScore">-</span>
+            </div>
+            <div class="profile-row">
+                <span class="label">평균 거리(px)</span>
+                <span id="avgDistance">-</span>
+            </div>
+
+            <div class="profile-row">
+                <span class="label">최근 플레이</span>
+                <span id="lastPlayedAt">-</span>
+            </div>
+        </div>
+
+        <!-- 최근 세션 -->
+        <div class="card">
+            <div class="card-title">🕹 최근 플레이 기록</div>
+            <div class="session-list" id="sessionList">
+                <div class="session-item">불러오는 중...</div>
+            </div>
+        </div>
+
+        <!-- 랭킹 -->
+        <div class="card">
+            <div class="card-title">🏆 랭킹 / 통계</div>
+
+            <button class="btn" style="width:100%; margin-bottom:14px;"
+                    onclick="location.href='/leaderboard/page'">
+                🏆 전체 리더보드 보기
+            </button>
+
+            <div class="rank-header">
+                <div>
+                    <span class="label">기간</span>
+                    <select id="rankRange">
+                        <option value="7d">최근 7일</option>
+                        <option value="30d">최근 30일</option>
+                        <option value="all">전체</option>
+                    </select>
+                </div>
+                <button class="inline-btn" id="refreshRankBtn">새로고침</button>
+            </div>
+
+            <div class="rank-list" id="rankList">
+                <div class="rank-item">랭킹 정보를 불러오는 중...</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 비밀번호 변경 모달 -->
+<div class="modal-backdrop" id="pwdModalBackdrop">
+    <div class="modal">
+        <h2>비밀번호 변경</h2>
+        <div class="modal-row">
+            <label for="currentPassword">현재 비밀번호</label>
+            <input type="password" id="currentPassword">
+        </div> <div class="modal-row">
+        <label for="newPassword">새 비밀번호</label>
+        <input type="password" id="newPassword">
+    </div>
+        <div class="modal-row">
+            <label for="newPassword2">새 비밀번호 확인</label>
+            <input type="password" id="newPassword2">
+            <div class="error-text" id="pwdError"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="pwdCancelBtn">취소</button>
+            <button class="btn" id="pwdSaveBtn">변경하기</button> </div>
+    </div>
+</div>
+
+<!-- 닉네임 변경 모달 -->
+<div class="modal-backdrop" id="nickModalBackdrop">
+    <div class="modal">
+        <h2>닉네임 변경</h2>
+
+        <div class="modal-row">
+            <label for="newNickInput">새 닉네임</label>
+            <input type="text" id="newNickInput">
+            <div class="error-text" id="nickError"></div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="nickCancelBtn">취소</button>
+            <button class="btn" id="nickSaveBtn">변경하기</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //로그인한 내 정보 전역 저장용 변수
+    let myInfo = null;
+
+    //JSON 응답 전용 API 래퍼 함수
+    async function apiJson(url, options = {}) {
+      const res = await apiFetch(url, {
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || res.status);
+
+      try { return JSON.parse(text); }
+      catch { return text; }
+    }
+
+    //마이페이지에 표시할 내 정보 + 최근 세션 불러오기
+    async function loadMyInfo() {
+      const json = await apiJson("/api/users/me");
+      if (!json.success) throw new Error("unauthorized");
+
+      const d = json.data;
+      myInfo = d;
+
+      nickname.textContent = d.nickname;
+      email.textContent = d.email;
+      createdAt.textContent = d.createdAt?.slice(0,10) ?? "-";
+
+      sumScore.textContent = d.sumScore ?? 0;
+      bestScore.textContent = d.bestScore ?? 0;
+      sumDistance.textContent = d.sumDistance ?? 0;
+      bestDistance.textContent = d.bestDistance ?? 0;
+      sumCoins.textContent = d.sumCoins ?? 0;
+      bestCoins.textContent = d.bestCoins ?? 0;
+      sessionCount.textContent = d.sessionCount ?? 0;
+
+      //평균 점수,거리
+      avgScore.textContent = (d.avgScore ?? 0).toFixed?.(1) ?? d.avgScore;
+      avgDistance.textContent = (d.avgDistance ?? 0).toFixed?.(1) ?? d.avgDistance;
+
+      //최근 플레이 시간
+      lastPlayedAt.textContent = d.lastPlayedAt
+        ? `${d.lastPlayedAt.slice(0,10)} ${d.lastPlayedAt.slice(11,16)}`
+        : "-";
+
+      const list = sessionList;
+      list.innerHTML = "";
+
+      //최근 세션이 없을 때
+      if (!d.recentSessions?.length) {
+        list.innerHTML = "<div class='session-item'>최근 세션 없음</div>";
+      } else {
+        //최근 세션 리스트 렌더링
+        d.recentSessions.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "session-item";
+          div.innerHTML = `
+            <div>🆔 ${s.id}</div>
+            <div>⏱ ${s.startedAt} ~ ${s.endedAt ?? "진행중"}</div>
+            <div>🔥 점수 ${s.score}, 거리 ${s.distance}, 코인 ${s.coins}</div>
+          `;
+          list.appendChild(div);
+        });
+      }
+    }
+
+    //비밀번호 변경 저장 버튼 클릭 시 처리
+    pwdSaveBtn.onclick = async () => {
+      if (newPassword.value !== newPassword2.value) {
+        pwdError.textContent = "비밀번호가 일치하지 않습니다.";
+        return;
+      }
+
+      await apiJson("/api/users/password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword: currentPassword.value,
+          newPassword: newPassword.value
+        })
+      });
+
+      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
+      location.href = "/login";
+    };
+
+    //닉네임 변경 저장 버튼 클릭 시 처리
+    nickSaveBtn.onclick = async () => {
+      await apiJson("/api/users/nickname", {
+        method: "PUT",
+        body: JSON.stringify({ newNickname: newNickInput.value })
+      });
+
+      nickname.textContent = newNickInput.value;
+      nickModalBackdrop.style.display = "none";
+      alert("닉네임 변경 완료");
+    };
+
+    //내 전체 랭킹 불러오기
+    async function loadMyRank(userId) {
+      const rankSpan = document.getElementById("myRank");
+
+      try {
+        const res = await apiJson(`/api/leaderboard/rank?userId=${userId}`);
+
+        if (res.rank) {
+          rankSpan.textContent = `( ${res.rank}위 )`;
+        } else {
+          rankSpan.textContent = `( 기록 없음 )`;
+        }
+      } catch {
+        rankSpan.textContent = "";
+      }
+    }
+
+    //랭킹 카드 내 기간별 상위 랭킹 목록 불러오기
+    async function loadRanking() {
+      const range = rankRange.value;
+      const res = await apiJson(`/api/leaderboard?type=score&range=${range}&page=0&size=20`);
+
+      rankList.innerHTML = "";
+      res.content.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "rank-item";
+        div.innerHTML = `🏅 ${r.rank}위 - ${r.nickname} (${r.bestScore})`;
+        rankList.appendChild(div);
+      });
+    }
+
+    //회원 탈퇴 버튼 클릭 시 처리
+    deleteAccountBtn.onclick = async () => {
+      if (!confirm("정말 탈퇴하시겠습니까?")) return;
+
+      await apiJson("/api/users/me", { method: "DELETE" });
+      alert("탈퇴 완료");
+      location.href = "/login";
+    };
+
+    //페이지 진입 시 내 정보 + 랭킹 정보를 먼저 로드
+    (async () => {
+      try {
+        await loadMyInfo();
+        await loadRanking();
+      } catch {
+        location.href = "/login";
+      }
+    })();
+
+    //기간 선택 변경 시 랭킹 다시 조회
+    rankRange.onchange = () => {
+      loadRanking();
+    };
+
+    //새로고침 버튼 클릭 시 랭킹 다시 조회
+    refreshRankBtn.onclick = () => {
+      loadRanking();
+    };
+
+    //비밀번호 변경 모달 열기
+    changePwdBtn.onclick = () => {
+      pwdError.textContent = "";
+      currentPassword.value = "";
+      newPassword.value = "";
+      newPassword2.value = "";
+      pwdModalBackdrop.style.display = "flex";
+    };
+
+    //닉네임 변경 모달 열기
+    editNicknameBtn.onclick = () => {
+      nickError.textContent = "";
+      newNickInput.value = nickname.textContent;
+      nickModalBackdrop.style.display = "flex";
+    };
+
+    //비밀번호 변경 모달 닫기
+    pwdCancelBtn.onclick = () => {
+      pwdModalBackdrop.style.display = "none";
+    };
+
+    //닉네임 변경 모달 닫기
+    nickCancelBtn.onclick = () => {
+      nickModalBackdrop.style.display = "none";
+    };
+
+    //모달 바깥 클릭 시 비밀번호 변경 모달 닫기
+    pwdModalBackdrop.onclick = (e) => {
+      if (e.target === pwdModalBackdrop) {
+        pwdModalBackdrop.style.display = "none";
+      }
+    };
+
+    //모달 바깥 클릭 시 닉네임 변경 모달 닫기
+    nickModalBackdrop.onclick = (e) => {
+      if (e.target === nickModalBackdrop) {
+        nickModalBackdrop.style.display = "none";
+      }
+    };
+
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>공지사항 - RunGame</title>
+
+    <style>
+        /*공통 네비 스타일*/
+        .nav-icon-btn {
+            position: fixed;
+            top: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(6px);
+            transition: 0.2s;
+        }
+
+        .nav-icon-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .nav-back {
+            left: 16px;
+        }
+        .nav-home {
+            right: 16px;
+        }
+
+        /*전체 페이지 공통 배경, 폰트 설정*/
+        body {
+            margin:0;
+            background:#0f172a;
+            color:#fff;
+            font-family:'Inter', sans-serif;
+        }
+
+        /*메인 컨테이너*/
+        .container {
+            max-width:800px;
+            margin:40px auto;
+            padding:0 20px;
+        }
+
+        /*페이지 상단 타이틀 스타일*/
+        h1 {
+            font-size:32px;
+            margin-bottom:30px;
+            color:#60a5fa;
+            text-align:center;
+        }
+
+        /*검색 영역 전체 박스*/
+        .search-box {
+            text-align:center;
+            margin-bottom:24px;
+        }
+
+        /*검색어 입력 필드 스타일*/
+        .search-input {
+            width:60%;
+            padding:10px 14px;
+            border-radius:8px;
+            border:1px solid #334155;
+            background:#1e293b;
+            color:white;
+            font-size:16px;
+        }
+
+        /*검색 버튼 스타일*/
+        .search-btn {
+            padding:10px 18px;
+            margin-left:8px;
+            border-radius:8px;
+            border:none;
+            background:#3b82f6;
+            color:white;
+            cursor:pointer;
+            font-size:16px;
+        }
+        .search-btn:hover {
+            background:#60a5fa;
+        }
+
+        /*개별 공지 카드 박스 스타일*/
+        .notice-card {
+            background:#1e293b;
+            padding:20px;
+            border-radius:12px;
+            margin-bottom:16px;
+            border:1px solid #334155;
+            cursor:pointer;
+        }
+        .notice-card:hover {
+            background:#243349;
+        }
+
+        .title {
+            font-size:20px;
+            font-weight:600;
+        }
+        .date {
+            color:#94a3b8;
+            margin-top:6px;
+        }
+
+        /*검색 결과 없을 때 표시되는 메세지 박스*/
+        .empty-box {
+            margin-top:40px;
+            text-align:center;
+            color:#94a3b8;
+            font-size:18px;
+        }
+
+        /*하단 페이지네이션 영역 컨테이너*/
+        .pagination {
+            display:flex;
+            justify-content:center;
+            gap:12px;
+            margin:30px 0;
+        }
+
+        /*페이지네이션 버튼 공통 스타일*/
+        .page-btn {
+            padding:8px 14px;
+            background:#1e293b;
+            border:1px solid #334155;
+            border-radius:8px;
+            color:#fff;
+            cursor:pointer;
+        }
+
+        .page-btn:hover {
+            background:#2563eb;
+            border-color:#2563eb;
+        }
+
+        /*비활성 페이지 버튼 스타일*/
+        .page-btn.disabled {
+            background:#334155;
+            cursor:not-allowed;
+        }
+
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+    <h1>공지사항</h1>
+
+    <!-- 검색 -->
+    <div class="search-box">
+        <input type="text" id="search" class="search-input" placeholder="제목을 입력하세요">
+        <button class="search-btn" onclick="loadNotices(0)">검색</button>
+    </div>
+
+    <div id="noticeList"></div>
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+    //현재 페이지 번호와 한 페이지에 보여줄 개수
+    let currentPage = 0;
+    const size = 5;
+
+    //날짜 문자열을 YYYY-MM-DD HH:mm 형태로 포맷팅
+    function formatDate(ds) {
+        const d = new Date(ds);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} `
+             + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    //공지 목록을 서버에서 조회해서 화면에 표시하는 함수
+    async function loadNotices(page = 0) {
+        currentPage = page;
+
+        //검색어 읽어서 쿼리 파라미터 구성
+        const keyword = search.value.trim();
+        const params = new URLSearchParams();
+        if (keyword) params.append("title", keyword);
+        params.append("page", page);
+        params.append("size", size);
+
+        //공지 페이징 조회 API 호출
+        const res = await fetch(`/public/notices/page?${params.toString()}`);
+        const data = await res.json();
+
+        const list = data.content;
+
+        //기존 리스트 비우기
+        noticeList.innerHTML = "";
+
+        //검색 결과가 없을 때 처리
+        if (!list.length) {
+            noticeList.innerHTML = `
+                <div class="empty-box">
+                    '${keyword}' 에 대한 공지가 없어요.
+                </div>`;
+            pagination.innerHTML = "";
+            return;
+        }
+
+        //공지 리스트 렌더링
+        list.forEach(n => {
+            const div = document.createElement("div");
+            div.className = "notice-card";
+            //카드 클릭 시 상세페이지로 이동
+            div.onclick = () => location.href = `/notices/${n.id}`;
+            div.innerHTML = `
+                <div class="title">${n.title}</div>
+                <div class="date">${formatDate(n.createdAt)}</div>
+            `;
+            noticeList.appendChild(div);
+        });
+
+        //페이징 버튼 출력
+        renderPagination(data);
+    }
+
+    //페이지네이션 렌더링 함수
+    function renderPagination(data) {
+        pagination.innerHTML = "";
+
+        //이전 버튼 생성
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "page-btn" + (data.first ? " disabled" : "");
+        prevBtn.textContent = "◀ 이전";
+        prevBtn.onclick = () => { if (!data.first) loadNotices(currentPage - 1); };
+
+        //다음 버튼 생성
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "page-btn" + (data.last ? " disabled" : "");
+        nextBtn.textContent = "다음 ▶";
+        nextBtn.onclick = () => { if (!data.last) loadNotices(currentPage + 1); };
+
+        pagination.appendChild(prevBtn);
+        pagination.appendChild(nextBtn);
+    }
+
+    //페이지 로드 시 첫 페이지 공지 자동 조회
+    loadNotices();
+</script>
+
+</body>
+</html>

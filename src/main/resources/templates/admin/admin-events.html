@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>RunGame - 이벤트 관리</title>
+
+  <style>
+    /*전체 관리자 페이지 공통 색상*/
+    :root {
+      --primary:#2563eb;
+      --primary-dark:#1e40af;
+      --bg:#f3f4f6;
+      --border:#e5e7eb;
+
+      --sidebar-bg:#ffffff;
+      --sidebar-text:#374151;
+      --sidebar-hover:#f3f4f6;
+      --sidebar-active:#e0e7ff;
+    }
+
+    /*전체 레이아웃 기본 설정*/
+    body {
+      margin:0;
+      display:flex;
+      height:100vh;
+      font-family:Inter,system-ui,-apple-system;
+      background:var(--bg);
+      color:#111827;
+      overflow:hidden;
+    }
+
+    /*사이드바*/
+    nav {
+      width:240px;
+      height:100vh;
+      background:var(--sidebar-bg);
+      color:var(--sidebar-text);
+      padding-top:28px;
+      border-right:1px solid var(--border);
+      box-shadow:2px 0 8px rgba(0,0,0,0.04);
+      overflow-y:auto;
+      flex-shrink:0;
+    }
+
+    nav h2 {
+      text-align:center;
+      margin-bottom:24px;
+      font-weight:700;
+      color:var(--primary-dark);
+      letter-spacing:-0.3px;
+    }
+
+    nav ul {
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+
+    nav li {
+      padding:14px 22px;
+      margin:4px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:background .2s, color .2s;
+      font-size:15px;
+    }
+
+    nav li:hover {
+      background:var(--sidebar-hover);
+    }
+
+    nav li.active {
+      background:var(--sidebar-active);
+      font-weight:600;
+      color:var(--primary-dark);
+    }
+
+    /*오른쪽 메인 콘텐츠 래퍼*/
+    .content {
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      flex:1;
+      overflow:hidden;
+    }
+
+    /*상단 헤더 영역*/
+    header {
+      background:white;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 26px;
+      box-shadow:0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    header h1 {
+      color:var(--primary-dark);
+      font-size:22px;
+      font-weight:700;
+    }
+
+    header button {
+      margin-left:10px;
+      background:var(--primary);
+      color:white;
+      border:none;
+      border-radius:6px;
+      padding:8px 14px;
+      cursor:pointer;
+      transition:background .15s;
+    }
+
+    header button:hover {
+      background:var(--primary-dark);
+    }
+
+    /*메인 콘텐츠 영역*/
+    main {
+      flex:1;
+      overflow-y:auto;
+      padding:28px;
+      width: 95%;
+    }
+
+    h2 {
+      color:var(--primary-dark);
+      font-size:20px;
+      margin-bottom:18px;
+      font-weight:700;
+    }
+
+    /*카드 박스 공통 스타일*/
+    .card {
+      background:white;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:20px;
+      margin-bottom:24px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.04);
+    }
+
+    /*한 줄 레이아웃*/
+    .row {
+      display:flex;
+      gap:8px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    /*폼 요소, 버튼 공통 스타일*/
+    input, select, button {
+      padding:8px;
+      border-radius:6px;
+      border:1px solid var(--border);
+      font-size:14px;
+    }
+
+    button {
+      background:var(--primary);
+      color:white;
+      border:none;
+      cursor:pointer;
+      transition:background .15s;
+    }
+
+    button:hover {
+      background:var(--primary-dark);
+    }
+
+    /*결과 출력 영역*/
+    pre {
+      background:#eef2ff;
+      padding:12px;
+      border-radius:8px;
+      white-space:pre-wrap;
+      font-size:14px;
+    }
+  </style>
+  <link rel="stylesheet" href="/css/popup.css">
+  <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<nav>
+  <h2>RunGame</h2>
+  <ul>
+    <li data-link="/rg-admin/main">📊 대시보드</li>
+    <li data-link="/rg-admin/users/page">👥 유저 관리</li>
+    <li data-link="/rg-admin/sessions/page">🎮 세션 관리</li>
+    <li data-link="/rg-admin/leaderboard/page">🏆 리더보드</li>
+    <li class="active" data-link="/rg-admin/events/page">🎯 이벤트 관리</li>
+    <li data-link="/rg-admin/notices/page">📢 공지사항 관리</li>
+    <li data-link="/rg-admin/qna">❓ Q&A 관리</li>
+    <li data-link="/rg-admin/system/page">🖥 시스템 관리</li>
+    <li data-link="/rg-admin/analytics/page">📈 분석 도구</li>
+  </ul>
+</nav>
+
+<div class="content">
+
+  <header>
+    <h1>이벤트 관리</h1>
+    <div>
+      <button id="homeBtn">🏠 홈</button>
+      <button id="mypageBtn">마이페이지</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>🎯 이벤트 관리</h2>
+    <div class="card">
+      <div class="row">
+        <select id="eventType">
+          <option value="">전체</option>
+          <option>game_start</option>
+          <option>jump</option>
+          <option>coin_pick</option>
+          <option>hit_obstacle</option>
+          <option>game_over</option>
+          <option>sprint_start</option>
+          <option>sprint_end</option>
+          <option>slide_start</option>
+          <option>slide_end</option>
+          <option>reverse_start</option>
+          <option>reverse_end</option>
+          <option>pause</option>
+          <option>resume</option>
+          <option>powerup_pick</option>
+          <option>checkpoint</option>
+        </select>
+
+        <input id="eventUserId" type="number" placeholder="userId">
+        <input id="eventSessionId" type="number" placeholder="sessionId">
+        <input id="eventFrom" type="datetime-local">
+        <input id="eventTo" type="datetime-local">
+
+        <button id="eventListBtn">이벤트 조회</button>
+      </div>
+
+      <pre id="outEventList"></pre>
+
+      <div class="row">
+        <input id="timelineSessionId" type="number" placeholder="sessionId">
+        <button id="timelineBtn">타임라인 보기</button>
+      </div>
+
+      <pre id="outTimeline"></pre>
+
+      <div class="row">
+        <select id="exportFormat">
+          <option value="json">JSON</option>
+          <option value="csv">CSV</option>
+        </select>
+        <button id="exportBtn">내보내기</button>
+      </div>
+
+      <pre id="outExport"></pre>
+
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+  import { apiFetch } from "/js/api.js";
+
+  //사이드바 메뉴 이동
+  document.querySelectorAll("nav li").forEach(li => {
+    li.onclick = () => location.href = li.dataset.link;
+  });
+
+  //로그아웃
+  logoutBtn.onclick = async () => {
+    await apiFetch("/api/users/logout", { method:"POST" });
+    alert("로그아웃되었습니다.");
+    location.href = "/rg-admin/login";
+  };
+
+  //홈,마이페이지
+  homeBtn.onclick = () => location.href = "/rg-admin/main";
+  mypageBtn.onclick = () => location.href = "/mypage";
+
+  //공통 API 호출 유틸
+  async function call(url, method="GET", body=null) {
+    const res = await apiFetch(url, {
+      method,
+      headers: body ? { "Content-Type":"application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    const txt = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${txt}`);
+
+    try { return JSON.parse(txt); }
+    catch {
+      return txt;
+    }
+  }
+
+  //쿼리스트링 생성 유틸
+  function buildQuery(params) {
+    return Object.entries(params)
+      .filter(([_, v]) => v !== "" && v !== null && v !== undefined)
+      .map(([k,v]) => `${k}=${encodeURIComponent(v)}`)
+      .join("&");
+  }
+
+  //이벤트 조회 버튼 클릭
+  eventListBtn.onclick = async () => {
+    try {
+      const qs = buildQuery({
+        type: eventType.value,
+        userId: eventUserId.value,
+        sessionId: eventSessionId.value,
+        fromAt: eventFrom.value,
+        toAt: eventTo.value,
+        page: 0,
+        size: 30
+      });
+
+      const r = await call("/rg-admin/events/data" + (qs ? "?" + qs : ""));
+      outEventList.textContent = JSON.stringify(r, null, 2);
+
+    } catch(e) {
+      outEventList.textContent = e;
+    }
+  };
+
+  //타임라인
+  timelineBtn.onclick = async () => {
+    try {
+      if (!timelineSessionId.value) return alert("sessionId를 입력하세요!");
+      const r = await call(`/rg-admin/events/timeline?sessionId=${timelineSessionId.value}`);
+      outTimeline.textContent = JSON.stringify(r, null, 2);
+    } catch(e) { outTimeline.textContent = e; }
+  };
+
+  //내보내기
+  exportBtn.onclick = async () => {
+    try {
+      const fmt = exportFormat.value;
+      const qs = buildQuery({
+        type: eventType.value,
+        userId: eventUserId.value,
+        sessionId: eventSessionId.value,
+        fromAt: eventFrom.value,
+        toAt: eventTo.value,
+        format: fmt
+      });
+
+      const res = await apiFetch("/rg-admin/events/export?" + qs);
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fmt === "json" ? "events.json" : "events.csv";
+      a.click();
+
+      outExport.textContent = `✅ ${fmt.toUpperCase()}로 내보내기 완료`;
+    } catch(e) {
+      outExport.textContent = e;
+    }
+  };
+</script>
+
+</body>
+</html>

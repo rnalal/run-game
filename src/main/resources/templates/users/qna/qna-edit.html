@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QnA 수정 - RunGame</title>
+
+    <style>
+        /*상단 네비 아이콘 버튼*/
+        .nav-icon-btn {
+          position: fixed;
+          top: 16px;
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.25);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          font-size: 20px;
+          cursor: pointer;
+          z-index: 9999;
+          backdrop-filter: blur(6px);
+        }
+        .nav-back {
+            left: 16px;
+        }
+        .nav-home {
+            right: 16px;
+        }
+
+        /*페이지 기본 스타일*/
+        body {
+            margin:0;
+            background:#0f172a;
+            color:#fff;
+            font-family:'Inter', sans-serif;
+        }
+
+        .container {
+            max-width:800px;
+            margin:80px auto;
+            padding:0 20px;
+        }
+
+        h1 {
+            text-align:center;
+            color:#60a5fa;
+            margin-bottom:30px;
+        }
+
+        /*입력 폼 공통 스타일*/
+        input, textarea, select {
+            width:100%;
+            padding:12px;
+            margin-bottom:16px;
+            border-radius:10px;
+            border:1px solid #334155;
+            background:#1e293b;
+            color:white;
+            font-size:16px;
+        }
+
+        textarea {
+            min-height:180px;
+        }
+
+        /*하단 버튼 그룹*/
+        .btn-group {
+            display:flex;
+            justify-content:center;
+            gap:12px;
+        }
+
+        button {
+            padding:12px 20px;
+            border-radius:10px;
+            border:none;
+            cursor:pointer;
+        }
+
+        .btn-primary {
+            background:#3b82f6;
+            color:white;
+        }
+
+        .btn-sub {
+            background:#334155;
+            color:white;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/popup.css">
+    <script src="/js/popup.js"></script>
+</head>
+
+<body>
+
+<button class="nav-icon-btn nav-back" onclick="history.back()">←</button>
+<button class="nav-icon-btn nav-home" onclick="location.href='/'">🏠</button>
+
+<div class="container">
+    <h1>질문 수정</h1>
+
+    <input id="title"/>
+    <textarea id="content"></textarea>
+
+    <select id="visibility">
+        <option value="PUBLIC">공개 질문</option>
+        <option value="PRIVATE">비공개 질문</option>
+    </select>
+
+    <div class="btn-group">
+        <button class="btn-primary" onclick="updateQna()">수정</button>
+        <button class="btn-sub" onclick="location.href='/qna'">취소</button>
+    </div>
+</div>
+
+<script type="module">
+    import { apiFetch } from "/js/api.js";
+
+    //URL 쿼리 파라미터에서 수정 대상 질문 id 추출
+    const id = new URLSearchParams(location.search).get("id");
+
+    //수정 화면 진입 시 기존 QnA 내용을 불러와 제목,내용,공개 여부를 입력 폼에 초기 세팅함
+    async function loadQna() {
+        const res = await apiFetch(`/api/qna/questions/${id}`);
+        const json = await res.json();
+        const q = json.data;
+
+        //서버에서 내려준 기존 질문 데이터로 폼 채우기
+        title.value = q.title;
+        content.value = q.content;
+        visibility.value = q.visibility;
+    }
+
+    //QnA 수정 요청 전송
+    window.updateQna = async function () {
+        const body = {
+            title: title.value,
+            content: content.value,
+            visibility: visibility.value
+        };
+
+        const res = await apiFetch(`/api/qna/questions/${id}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+            alert("수정 완료");
+            location.href = `/qna/detail?id=${id}`;
+        } else {
+            alert(json.error);
+        }
+    };
+
+    //페이지 로딩 시 최초 1회 기존 질문 데이터 조회
+    loadQna();
+</script>
+
+</body>
+</html>
