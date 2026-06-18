@@ -7,19 +7,10 @@ import lombok.Value;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*
-* 관리자 사용자 상세 정보 응답 DTO
-*
-* - 사용자 기본 정보
-* - 누적 플레이 통계
-* - 최근 세션/ 이벤트 활동 내역
-*
-* 관리자 화면에서 사용자 한 명을 깊이 분석하기 위한 종합 데이터 구조
-* */
 @Value
 @Builder
 public class AdminUserDetailResponse {
-    //============기본 사용자 정보=============
+
     Long id;
     String nickname;
     String email;
@@ -28,27 +19,23 @@ public class AdminUserDetailResponse {
     LocalDateTime createdAt;
     LocalDateTime lastLoginAt;
 
-    //============전체 활동 요약============
     //전체 세션 수
     long totalSessions;
 
-    //============누적 집계 데이터===========
     //누적 점수 합계
     long totalScore;
     //누적 이동 거리
     long totalDistance;
     //누적 획득 코인 수
     long totalCoins;
-    //누적 플레이 시간 (초 단위)
+    //누적 플레이 시간
     long totalPlaySeconds;
 
-    //=============최근 활동 내역=============
     //최근 세션 목록
     List<RecentSession> recentSessions;
     //최근 이벤트 목록
     List<RecentEvent> recentEvents;
 
-    //=============최근 세션 정보============
     //최근 세션 요약 DTO
     @Value
     public static class RecentSession {
@@ -68,12 +55,7 @@ public class AdminUserDetailResponse {
         }
     }
 
-    //===============최근 이벤트 정보==============
-    /*
-    * 최근 이벤트 요약 DTO
-    *
-    * - payload가 큰 경우 일부만 미리보기로 제공
-    * */
+    //최근 이벤트 요약 DTO
     @Value
     public static class RecentEvent {
         Long eventId;

@@ -6,12 +6,7 @@ import { ctx, W, H } from "../dom.js";
 import { groundY, MAX_LEVEL } from "../constants.js";
 import { mixHex } from "../utils.js";
 
-/*
-배경 전용 렌더 모듈
-- 레벨에 따라 하늘,조명 분위기 변경
-- 플레이어 X 위치 기준으로 구름,별 패럴렉스 이동
-- 지면,언덕,도로 라인까지 한 번에 그리기
-*/
+//배경 전용 렌더 모듈
 
 //구름 덩어리
 export function drawCloud(cx, cy, r) {

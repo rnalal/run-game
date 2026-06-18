@@ -241,10 +241,8 @@
   </main>
 
 </div>
-
+<script src="/js/api.js"></script>
 <script type="module">
-  import { apiFetch } from "/js/api.js";
-
   //사이드바 네비
   document.querySelectorAll("nav li").forEach(li => {
     li.addEventListener("click", () => location.href = li.dataset.link);

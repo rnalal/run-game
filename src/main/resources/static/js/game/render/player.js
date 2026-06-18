@@ -6,12 +6,7 @@ import { ctx } from "../dom.js";
 import { groundY } from "../constants.js";
 import { isSpeedBoostActive, isShieldActive } from "../powerup.js";
 
-/*
-플레이어 캐릭터 렌더링 모듈
-- 토끼 본체 드로잉
-- 그림자 드로잉
-- 상태(점프,슬라이드)에 따른 각도,모양 변경
-*/
+//플레이어 캐릭터 렌더링 모듈
 
 //토끼 본체(자세,기울기 포함)
 export function drawRabbit(x, y, w, h, keys, onGround, t) {

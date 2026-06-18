@@ -6,23 +6,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
-/*
-* 관리자 인증 principal 객체
-*
-* - Spring Security에서 인증된 관리자 정보를 표현
-* - JWT 인증 후 SecurityContext에 저장되는 사용자 정보
-* */
+//관리자 인증 principal 객체
 @Getter
 public class AdminPrincipal implements UserDetails {
-    //관리자(사용자) ID
+
     private final Long id;
-    //로그인 식별자(username 또는 email)
+    //로그인 식별자
     private final String username;
-    /*
-    * 관리자 권한 목록
-    *
-    * - ROLE_ADMIN, ROLE_SUPER_ADMIN 등
-    * */
+    //관리자 권한 목록
     private final Collection<? extends GrantedAuthority> authorities;
 
     public AdminPrincipal(
@@ -41,11 +32,7 @@ public class AdminPrincipal implements UserDetails {
         return authorities;
     }
 
-    /*
-    * 비밀번호는 사용하지 않음
-    *
-    * - JWT 기반 인증이므로 null 반환
-    * */
+    //비밀번호는 사용하지 않음
     @Override public String getPassword() {
         return null;
     }

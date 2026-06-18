@@ -1,11 +1,5 @@
 //session.js
-/*
-세션 시작,종료 + 이벤트 배치 전송 담당
-- 클라이언트에서 발생한 게임 이벤트를 큐에 쌓았다가 주기적으로 서버에 전송
-- 세션 시작 시 플레이어,월드 상태 초기화 + 서버에 세션 생성 요청
-- 게임 종료 시 game_over 이벤트 전송 후 /end API 호출로 서버 집계 트리거
-- 연속 전송 실패 시 배치 타이머 중단
-*/
+//세션 시작,종료 + 이벤트 배치 전송
 
 import { gimmicks } from "/js/gimmicks.js";
 
@@ -15,11 +9,7 @@ import { groundY, SHIELD_MAX_CHARGES } from "./constants.js";
 import { nowMs } from "./utils.js";
 import { resetJumpInput } from "./input.js";
 
-/*
-이벤트 큐에 한 건 추가
-- tMs(이벤트 시각)는 단조 증가만 허용해서 시간 역행 방지
-- payload는 서버로 보낼 때 JSON 문자열로 구정
-*/
+//이벤트 큐에 한 건 추가
 export function enqueueEvent(type, payload = {}) {
   if (!S.sessionId || S.gameOver) return;
 
@@ -38,11 +28,7 @@ export function enqueueEvent(type, payload = {}) {
   });
 }
 
-/*
-이벤트 배치를 서버로 전송
-- 성공 시에만 큐에서 제거
-- 연속 3회 실패 시 타이머 중단해서 무한 재시도 방지
-*/
+//이벤트 배치를 서버로 전송
 export async function sendBatch(){
   if (!S.sessionId || S.gameOver || S.queue.length === 0) return;
 
@@ -80,12 +66,7 @@ export async function sendBatch(){
   }
 }
 
-/*
-세션 시작 요청 + 클라이언트 상태 초기화
-- 이전 세션 타이머,큐 정리 후 /api/sessions/start 호출
-- 응답으로 받은 sessionId를 S.sessionId에 저장
-- 이후 1초마다 sendBatch() 실행
-*/
+//세션 시작 요청 + 클라이언트 상태 초기화
 export async function startSession() {
 
   resetJumpInput();
@@ -192,11 +173,7 @@ export async function startSession() {
   }
 }
 
-/*
-게임 종료 처리 + 서버 세션 종료 호출
-- 클라 쪽에서는 오버레이 먼저 띄우고 종료 연출
-- 서버에는 game_over 이벤트 +/end 호출로 집계 마무리
-*/
+//게임 종료 처리 + 서버 세션 종료 호출
 export async function sendGameOver(reason="manual", showGameOverOverlay) {
   if (S.gameOver) return;
   S.gameOver = true;

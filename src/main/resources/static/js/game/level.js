@@ -1,11 +1,4 @@
-/*
-레벨 계산 & 레벨업 처리
-- 이동 거리 기준으로 현재 레벨 산출
-- 레벨 변경 시 연출(gimmicks),HUD 연동
-- 10레벨 미션 시작, 클리어 판정
-*/
-//level.js
-
+//레벨 계산 & 레벨업 처리
 import { gimmicks } from "/js/gimmicks.js";
 
 import { S } from "./state.js";

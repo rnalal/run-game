@@ -3,22 +3,10 @@ package com.example.rungame.common.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/*
-* 공통 에러 코드 정의 Enum
-*
-* - 애플리케이션 전반에서 사용하는 표준 에러 코드 집합
-* - HTTP 상태 코드 + 내부 에러 코드 + 기본 메시지를 함께 관리
-*
-* 예외 처리 시 문자열을 직접 사용하지 않고
-* ErrorCode 기준으로 일관된 에러 응답을 생성하기 위한 목적
-* */
+//공통 에러 코드 정의 Enum
 @Getter
 public enum ErrorCode {
-    /*
-    * 잘못된 입력 값
-    * - @Valid 검증 실패
-    * - 파라미터 형식 오류
-    * */
+    //잘못된 입력 값
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "c001", "Invalid input"),
     //이메일 중복
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "Email already in use"),
@@ -26,11 +14,7 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "U002", "Nickname alredy in use"),
     //리소스를 찾을 수 없음 -> 존재하지 않는 엔티티 접근
     NOT_FOUND(HttpStatus.NOT_FOUND, "C404", "Resource not found"),
-    /*
-    * 서버 내부 오류
-    * - 처리되지 않은 예외
-    * - 예상하지 못한 시스템 오류
-    * */
+    //서버 내부 오류
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S500", "Internal server error");
 
     //HTTP 상태 코드

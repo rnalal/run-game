@@ -195,10 +195,8 @@
   <span id="pageInfo"></span>
   <button id="nextBtn">다음 ➡</button>
 </div>
-
+<script src="/js/api.js"></script>
 <script type="module">
-  import { apiFetch } from "/js/api.js";
-
   const API_BASE = "/api/leaderboard";
   let currentPage = 0;  //현재 페이지 번호
   let currentType = "score";  //현재 정렬 기준

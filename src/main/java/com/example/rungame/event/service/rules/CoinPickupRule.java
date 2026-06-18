@@ -12,15 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-/*
-* 코인 획득 이벤트 검증을 담당하는 규칙 클래스
-* - 플레이어가 코인을 너무 비정상적인 템포로 먹거나
-*   순간이동하듯이 위치가 튀는 상황을 걸러내는 역할
-*
-* - 코인 획득 간격이 너무 짧지 않은지
-* - 코인 획득 위치가 비정상적으로 크지 않은지
-* - 직전에 먹은 코인 위치와 비교했을 때, 한 번에 너무 멀리 이동하지 않았는지
-* */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -46,25 +37,13 @@ public class CoinPickupRule implements EventRule {
         return type == EventType.coin_pick;
     }
 
-    /*
-    * 코인 획득 이벤트 한 건에 대한 검증 로직
-    * - 간격 체크
-    * - 위치 값 이상 여부 체크
-    * - 직전 코인 위치와의 거리 차이 체크
-    *
-    * @param e : 현재 들어온 코인 이벤트
-    * @param lastTms : 배치 처리 중 타입별 마지막 tMs를 돌고 있는 맵
-    * */
+    //코인 획득 이벤트 한 건에 대한 검증 로직
     @Override
     public void validate(SessionEvent e, Map<EventType, Integer> lastTms){
         final long sid = e.getSessionId();
         final int tMs = e.getTMs();
 
-        /*
-        * 1) 코인 간 최소 간격 체크
-        * - 우선 배체 컨택스트에 있는 값 사용
-        * - 없으면 DB에서 마지막 코인 이벤트를 찾아와 보정
-        * */
+        //코인 간 최소 간격 체크
         Integer lastCoinT = lastTms.get(EventType.coin_pick);
         if (lastCoinT == null) {
             repo.findLastBySessionIdAndType(sid, EventType.coin_pick)
@@ -80,10 +59,7 @@ public class CoinPickupRule implements EventRule {
             }
         }
 
-        /*
-        * 2) 위치값 자체가 이상한지 체크
-        * - payload에서 x를 읽어오고 너무 큰 절대값은 바로 의심
-        * */
+        //위치값 자체가 이상한지 체크
         double x = Payloads.getDouble(e.getPayload(), "x", 0.0);
 
         //아주 말도 안되는 큰 값 필터링
@@ -92,10 +68,7 @@ public class CoinPickupRule implements EventRule {
             return;
         }
 
-        /*
-        * 3) 직전 코인 위치와 비교해서 순간이동 수준인지 체크
-        * - repo를 이용해 같은 세션의 마지막 coin_pick 조회
-        * */
+        //직전 코인 위치와 비교해서 순간이동 수준인지 체크
         repo.findLastBySessionIdAndType(e.getSessionId(), EventType.coin_pick)
                 .ifPresent(prev -> {
                     double px = Payloads.getDouble(prev.getPayload(), "x", x);

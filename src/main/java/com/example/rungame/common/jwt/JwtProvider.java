@@ -9,17 +9,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
-/*
- * JWT 생성 및 검증을 담당하는 Provider
- *
- * - Access / Refresh Token 생성
- * - 서명 및 만료 검증
- * - Claim 추출
- *
- * Controller / Filter / Service 계층에서
- * JWT 라이브러리에 직접 의존하지 않도록
- * JWT 관련 책임을 한 곳에 모은 클래스
- */
+//JWT 생성 및 검증을 담당하는 Provider
 public class JwtProvider {
 
     //Claim Key 상수
@@ -37,14 +27,7 @@ public class JwtProvider {
     private final long accessTtlSeconds;    //Access Token TTL
     private final long refreshTtlSeconds;   //Refresh Token TTL
 
-    /*
-    * JwtProvider 생성자
-    *
-    * @param secret JWT 서명용 secret (환경 변수로 관리)
-    * @param issuer JWT 발급자
-    * @param accessTtlSeconds Access Token 유효 시간
-    * @param refreshTtlSeconds Refresh Token 유효 시간
-    * */
+    //JwtProvider 생성자
     public JwtProvider(String secret, String issuer, long accessTtlSeconds, long refreshTtlSeconds) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
@@ -52,11 +35,7 @@ public class JwtProvider {
         this.refreshTtlSeconds = refreshTtlSeconds;
     }
 
-    /*
-    * Access Token 생성
-    * - 사용자 식별 정보 포함
-    * - API 인증에 사용
-    * */
+    //Access Token 생성
     public String createAccessToken(Long userId, String email, String nickname, String role, int tokenVersion) {
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(accessTtlSeconds);
@@ -76,11 +55,7 @@ public class JwtProvider {
                 .compact();
     }
 
-    /*
-    * Refresh Token 생성
-    * - 최소 Claim만 포함
-    * - DB 저장 + Rotation 대상
-    * */
+    //Refresh Token 생성
     public String createRefreshToken(Long userId, String role, int tokenVersion) {
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(refreshTtlSeconds);
@@ -98,12 +73,7 @@ public class JwtProvider {
                 .compact();
     }
 
-    /*
-    * JWT 서명/ 만료 검증
-    *
-    * @param token JWT 무자열
-    * @return 유효 여부
-    * */
+    //JWT 서명/ 만료 검증
     public boolean validate(String token) {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
@@ -149,6 +119,19 @@ public class JwtProvider {
         var claims = Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload();
         return claims.getId();
+    }
+
+    //토큰 만료 시간
+    public Date getExpiration(String token) {
+        var claims = Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload();
+        return claims.getExpiration();
+    }
+
+    public long getRemainingSeconds(String token){
+        Date expiration = getExpiration(token);
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+        return Math.max(0, remainingMillis / 1000);
     }
 
     public SecretKey getKey() {

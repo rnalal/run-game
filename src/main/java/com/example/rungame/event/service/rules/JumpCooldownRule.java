@@ -10,15 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-/*
-* 점프 이벤트 쿨다운을 담당하는 규칙 클래스
-* - 플레이어가 너무 짧은 간격으로 연속 점프하는 상황을 막기 위한 룰
-* - 최소 간격을 기준으로 그보다 빠른 jump 이벤트는 조용히 무시
-*
-* - 같은 배치 안에서 마지막 jump 시각 확인
-* - 없다면 DB에서 마지막 jump를 찾아와 기준값으로 사용
-* - 현재 jump와의 시간 차이가 쿨다운 이상인지 확인
-* */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -35,15 +26,7 @@ public class JumpCooldownRule implements EventRule {
         return type == EventType.jump;
     }
 
-    /*
-    * jump 이벤트 한 건에 대한 쿨다운 검증
-    * - 배치 컨텍스트에 있는 마지막 jump 시간 우선 활용
-    * - 없다면 DB에서 마지막 jump를 가져와 보정
-    * - 최소 쿨다운을 어기면 로그만 남기고 무시
-    *
-    * @param e : 현재 들어온 jump 이벤트
-    * @param lastTms : 배치 안에서 타입별 마지막 tMs를 관리하는 맵
-    * */
+    //jump 이벤트 한 건에 대한 쿨다운 검증
     @Override
     public void validate(SessionEvent e, Map<EventType, Integer> lastTms){
 

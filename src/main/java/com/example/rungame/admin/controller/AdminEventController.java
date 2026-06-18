@@ -17,40 +17,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/*
-* 관리자 이벤트 관리 컨트롤러
-*
-* -이벤트 로그 조회 (필터+페이징)
-* -특정 세션의 이벤트 타임라인 조회
-* -이벤트 데이터 내보내기 (JSON/CSV)
-* -이벤트 타입 목록 제공
-* -이벤트 룰 조회 및 수정
-*
-* ADMIN 또는 SUPER_ADMIN 권한을 가진 관리자만 접근 가능
-* */
 @RestController
 @RequestMapping("/rg-admin/events")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 public class AdminEventController {
 
-    //이벤트 로그 및 통계 관련 비즈니스 로직
     private final AdminEventService adminEventService;
-    //이벤트 검증/운영 룰 관리 로직
     private final AdminEventRuleService adminEventRuleService;
 
-    //생성자
     public AdminEventController(AdminEventService adminEventService,
                                 AdminEventRuleService adminEventRuleService) {
         this.adminEventService = adminEventService;
         this.adminEventRuleService = adminEventRuleService;
     }
 
-    /*
-    * 이벤트 로그 목록 조회 (필터+페이징)
-    *
-    * -이벤트 타입, 사용자 ID, 세션 ID, 기간 조건으로 필터링 가능
-    * -관리자 화면의 이벤트 리스트 테이블 용도
-    * */
+    //이벤트 로그 목록 조회
     @GetMapping("/data")
     public Page<EventLogDTO> list(
             @RequestParam(required = false) String type,
@@ -96,23 +77,13 @@ public class AdminEventController {
         return adminEventService.list(type, uid, sid, from, to, page, size);
     }
 
-    /*
-    * 특정 세션의 이벤트 타임라인 조회
-    *
-    * - 게임 플레이 효율 분석용
-    * - 이벤트 발생 순서를 시간 기준으로 정렬하여 제공
-    * */
+    //특정 세션의 이벤트 타임라인 조회
     @GetMapping("/timeline")
     public EventTimelineDTO timeline(@RequestParam Long sessionId) {
         return adminEventService.timeline(sessionId);
     }
 
-    /*
-    * 이벤트 데이터 내보내기
-    *
-    * - format=csv -> CSV 파일 다운로드
-    * - format=json -> JSON 응답 반환
-    * */
+    // 이벤트 데이터 내보내기
     @GetMapping("/export")
     public ResponseEntity<?> export(
             @RequestParam(defaultValue = "json") String format,
@@ -162,11 +133,7 @@ public class AdminEventController {
         return ResponseEntity.ok(page.getContent());
     }
 
-    /*
-    * 시스템에서 사용 중인 이벤트 타입 목록 반환
-    *
-    * - 관리자 필터 UI 구성 용도
-    * */
+    //시스템에서 사용 중인 이벤트 타입 목록 반환
     @GetMapping("/types")
     public List<String> types() {
         return List.of(
@@ -174,23 +141,13 @@ public class AdminEventController {
         ).stream().map(Enum::name).toList();
     }
 
-    /*
-    * 현재 이벤트 검증/운영 룰 조회
-    *
-    * - 최소 점프 간격
-    * - 스프린트 최소 지속 시간
-    * - 리버스 최대 지속 시간 등
-    * */
+    //현재 이벤트 검증/운영 룰 조회
     @GetMapping("/rules")
     public Map<String, Object> rules() {
         return adminEventRuleService.current();
     }
 
-    /*
-    * 이벤트 룰 업데이트
-    *
-    * - 일부 값만 전달하여 부분 업데이트 가능
-    * */
+    //이벤트 룰 업데이트
     @PostMapping("/rules")
     public Map<String, Object> updateRules(
             @RequestParam(required = false) Integer jumpMinIntervalMs,

@@ -1,5 +1,4 @@
 //파워업 로직
-//powerup.js
 
 import { S } from "./state.js";
 import { nowMs } from "./utils.js";

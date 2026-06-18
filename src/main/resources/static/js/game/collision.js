@@ -8,11 +8,7 @@ import { updateHUD } from "./hud.js";
 import { enqueueEvent } from "./session.js";
 import { isShieldActive, isSpeedBoostActive } from "./powerup.js";
 
-/*
-장애물 충돌 처리
-- hit 연출 + 점수 감소 + 게임오버 조건 관리
-- SPEED_BOOST/SHIELD 상태에 따라 처리
-*/
+//장애물 충돌 처리
 export function sendHitObstacle(sendGameOverFn){
   const impact = Math.floor(5 + Math.random()*6); //서버로 보낼 충돌 강도
 
@@ -51,11 +47,7 @@ export function sendHitObstacle(sendGameOverFn){
   }
 }
 
-/*
-장애물 충돌 체크
-- 플레이어 vs 장애물 AABB 충돌
-- 타입별(puddle, slideObstacle, 일반 나무 등) 처리
-*/
+//장애물 충돌 체크
 export function checkObstacleCollision(sendGameOverFn){
   const playerRect = {
     x: S.playerX,

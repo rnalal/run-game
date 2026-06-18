@@ -11,10 +11,7 @@ import { drawCheckpoints, drawObstacles, drawCoins, drawWindBoosts } from "./obj
 import { drawPlayer } from "./player.js";
 import { isShieldActive, isSpeedBoostActive } from "../powerup.js";
 
-/*
-화면 전체 렌더링 모듈
-- 배경,오브젝트,버프 이펙트,플레이어를 한 번에 그리는 메인 드로우 루프
-*/
+//화면 전체 렌더링 모듈
 
 //바람(스프린트,바람 부스트) 아이콘
 export function drawWindIcon(x, y, r, t) {

@@ -17,36 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
-/*
-* 관리자 사용자 관리 서비스
-*
-* - 사용자 검색 (조건 + 페이징)
-* - 사용자 상세 정보 조회
-* - 사용자 정지 / 정지 해제
-* - 사용자 권한 변경
-* - 사용자 활동 요약 조회
-*
-* 운영 및 관리 목적의 사용자 제어 로직을 담당
-* */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminUserService {
 
-    //사용자 기본 정보 Repository
     private final UserRepository userRepository;
-    //세션 집계 및 조회 Repository
     private final SessionRepository sessionRepository;
-    //사용자 이벤트 조회 Repository
     private final SessionEventRepository sessionEventRepository;
 
-    //===============사용자 검색 (조건+페이징)=======================
-    /*
-    * 사용자 목록 검색
-    *
-    * - ID / 닉네임 / 이메일 / 상태 / 권한 조건 지원
-    * - JPA Specification 기반 동적 쿼리
-    * */
+    //사용자 목록 검색
     public Page<AdminUserResponse> searchUsers(Long id, String nickname, String email, String status,String role, Pageable pageable){
         Specification<User> spec = Specification.where(UserAdminSpecs.idEquals(id))
                 .and(UserAdminSpecs.nicknameContains(nickname))
@@ -58,14 +38,7 @@ public class AdminUserService {
                 .map(AdminUserResponse::from);
     }
 
-    //=========================사용자 상세 정보 조회=======================
-    /*
-    * 사용자 상세 정보 조회
-    *
-    * - 기본 프로필
-    * - 누적 플레이 통계
-    * - 최근 세션 / 이벤트
-    * */
+    //사용자 상세 정보 조회
     public AdminUserDetailResponse getUserDetail(Long userId) {
         User u = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
@@ -108,13 +81,7 @@ public class AdminUserService {
                 .build();
     }
 
-    //====================사용자 정지 / 정지 해제======================
-    /*
-    * 사용자 정지 / 정지 해제
-    *
-    * - 상태 변경
-    * - 토큰 버전 증가를 통한 즉시 로그아웃 효과
-    * */
+    //사용자 정지 / 정지 해제
     @Transactional
     public void updateBan(Long userId, boolean ban){
         User u = userRepository.findById(userId)
@@ -126,12 +93,7 @@ public class AdminUserService {
         u.incrementTokenVersion();
     }
 
-    //=====================사용자 권한 변경=========================
-    /*
-    * 사용자 권한 변경
-    *
-    * - USER / ADMIN / SUPER_ADMIN
-    * */
+    //사용자 권한 변경
     @Transactional
     public void updateRole(Long userId, String newRole) {
 
@@ -148,14 +110,7 @@ public class AdminUserService {
         u.setRole(nr);
     }
 
-    //=====================사용자 활동 요약==========================
-    /*
-    * 사용자 활동 요약 조회
-    *
-    * - 최근 로그인 시각
-    * - 최근 N일 세션 수
-    * - 전체 누적 플레이 시간
-    * */
+    //사용자 활동 요약 조회
     @Transactional(readOnly = true)
     public AdminUserActivityResponse getUserActivity(Long userId, int days) {
         var u = userRepository.findById(userId)
@@ -169,12 +124,7 @@ public class AdminUserService {
         //전체 누적 플레이 시간
         long playSecondsTotal = sessionRepository.sumPlaySecondsByUserId(userId);
 
-        /*
-        * 기간 내 플레이 시간
-        *
-        * - 진해 중 세션 (endedAt == null)은 제외
-        * - 필요 시 조건 보강 가능
-        * */
+        //기간 내 플레이 시간
         long playSecondsInRange = 0L;
 
         return new com.example.rungame.admin.dto.AdminUserActivityResponse(

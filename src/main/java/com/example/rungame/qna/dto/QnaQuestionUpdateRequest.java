@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-/*
-* QnA 질문 수정 요청 DTO
-* - 사용자가 이미 작성한 QnA 질문의 제목,내용,공개 범위를 수정할 때 사용하는 요청 바디 모델
-* */
+//QnA 질문 수정 요청 DTO
 @Getter
 public class QnaQuestionUpdateRequest {
     @NotBlank

@@ -1,8 +1,4 @@
-/*
-HUD(상단 상태 UI) 갱신
-- 점수,코인,레벨 표시
-- 남은 목숨과 쉴드 아이콘 갱신
-*/
+//HUD(상단 상태 UI) 갱신
 
 import { S } from "./state.js";
 import { MAX_HITS, SHIELD_MAX_CHARGES } from "./constants.js";

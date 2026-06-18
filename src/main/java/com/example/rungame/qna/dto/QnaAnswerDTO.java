@@ -5,11 +5,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-/*
-* QnA 답변 조회용 DTO
-* - QnaAnswer 엔티티 + 관리자 이름까지 합쳐서 화면/클라이언트에서 바로 쓰기 좋은 형태로
-*   만든 답변 응답 전용 모델
-* */
+//QnA 답변 조회용 DTO
 @Getter
 @Builder
 public class QnaAnswerDTO {

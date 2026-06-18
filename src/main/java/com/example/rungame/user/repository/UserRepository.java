@@ -9,13 +9,8 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/*
-* User 엔티티 저장소
-* - 회원가입,로그인,내 정보 조회,통계에 필요한 유저 조회 기능을 모아둔 레포지토리
-* - Spring Data JPA의 메서드 이름 규칙 + @Query를 같이 사용해서 자주 쓰던 패턴 쿼리를
-*   명시적으로 분리함
-* */
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+
     //회원가입 중복 체크용
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);

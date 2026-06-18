@@ -3,6 +3,7 @@ package com.example.rungame.qna.repository;
 import com.example.rungame.qna.domain.QnaQuestion;
 import com.example.rungame.qna.domain.QnaVisibility;
 import com.example.rungame.qna.domain.QnaStatus;
+import com.example.rungame.qna.dto.QnaQuestionListItemDTO;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
@@ -35,6 +36,34 @@ public interface QnaQuestionRepository extends JpaRepository<QnaQuestion, Long> 
             )
     """)
     Page<QnaQuestion> searchPublic(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+            select new com.example.rungame.qna.dto.QnaQuestionListItemDTO(
+                q.id,
+                q.title,
+                q.visibility,
+                q.status,
+                case
+                    when q.status = com.example.rungame.qna.domain.QnaStatus.ANSWERED
+                    then true
+                    else false
+                end,
+                coalesce(u.nickname, '알 수 없음'),
+                q.createdAt
+            )
+            from QnaQuestion q
+            left join User u on u.id = q.userId
+            where q.visibility = com.example.rungame.qna.domain.QnaVisibility.PUBLIC
+                and (
+                    :keyword is null or :keyword = ''
+                    or lower(q.title) like lower(concat('%', :keyword, '%'))
+                    or q.content like concat('%', :keyword, '%')
+                )
+    """)
+    Page<QnaQuestionListItemDTO> searchPublicListItems(
             @Param("keyword") String keyword,
             Pageable pageable
     );
@@ -86,6 +115,40 @@ public interface QnaQuestionRepository extends JpaRepository<QnaQuestion, Long> 
             q.createdAt desc
     """)
     Page<QnaQuestion> searchAllAdmin(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("""
+      select new com.example.rungame.qna.dto.QnaQuestionListItemDTO(
+          q.id,
+          q.title,
+          q.visibility,
+          q.status,
+          case
+              when q.status = com.example.rungame.qna.domain.QnaStatus.ANSWERED
+              then true
+              else false
+          end,
+          coalesce(u.nickname, '탈퇴한 사용자'),
+          q.createdAt
+      )
+      from QnaQuestion q
+      left join User u on u.id = q.userId
+      where (
+        :keyword is null or :keyword = ''
+        or lower(q.title) like lower(concat('%', :keyword, '%'))
+        or q.content like concat('%', :keyword, '%')
+      )
+      order by
+        case
+            when q.status = com.example.rungame.qna.domain.QnaStatus.OPEN
+            then 0
+            else 1
+        end,
+        q.createdAt desc
+    """)
+    Page<QnaQuestionListItemDTO> searchAllAdminListItems(
             @Param("keyword") String keyword,
             Pageable pageable
     );

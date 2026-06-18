@@ -7,17 +7,9 @@ import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
 
-/*
-* 사용자 계정 도메인 엔티티
-* - 런게임 웹 서비스에서 로그인,권한,계정 상태를 관리하는 핵심 사용자 테이블 매핑 엔티티
-* */
 @Entity
 @Table(
         name = "users",
-        indexes = {
-                @Index(name = "idx_email", columnList = "email"),
-                @Index(name = "idx_nickname", columnList = "nickname")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "email_UNIQUE", columnNames = {"email"}),
                 @UniqueConstraint(name = "nickname_UNIQUE", columnNames = {"nickname"})
@@ -26,7 +18,6 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED) //JPA 기본 생성자
 @AllArgsConstructor(access = AccessLevel.PRIVATE) //Builder,팩토리에서 사용
-@Builder
 public class User extends BaseTimeEntity {
 
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,7 +45,6 @@ public class User extends BaseTimeEntity {
 
         //로그아웃, 강제 로그아웃 시 토큰 무효화를 위한 버전 필드
         @Column(name="token_version", nullable = false)
-        @Builder.Default
         private int tokenVersion = 0;
 
         @Comment("최근 로그인 시각")
@@ -66,11 +56,7 @@ public class User extends BaseTimeEntity {
                 this.tokenVersion += 1;
         }
 
-        /*
-        * 새 사용자 생성용 정적 팩토리
-        * - 계정 생성 시 기본 role/status 를 한 곳에서 세팅해서
-        *   생성 규칙이 여기에서만 관리되도록 만들었음
-        * */
+        //새 사용자 생성용 정적 팩토리
         public static User create(String email, String passwordHash, String nickname){
                 User u = new User();
                 u.email = email;

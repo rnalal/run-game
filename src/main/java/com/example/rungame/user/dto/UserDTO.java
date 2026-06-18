@@ -9,11 +9,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*
-* 사용자 관련 요청,응답을 한 곳에 모아둔 DTO 모음 클래스
-* - 회원가입, 로그인, 로그아웃, 내 정보 조회, 비밀번호/닉네임 변경 등
-*   유저 API에서 주고받는 데이터 형태를 정의
-* */
 public class UserDTO {
 
     //회원가입

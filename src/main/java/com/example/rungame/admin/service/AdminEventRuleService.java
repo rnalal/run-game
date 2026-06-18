@@ -6,30 +6,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-/*
-* 관리자 이벤트 룰 관리 서비스
-*
-* - 게임 이벤트 검증 및 점수 계산에 사용되는
-*   런타임 룰 조회 및 생성
-*
-* 서버 재시작 없이 운영 중 룰을 조정할 수 있도록 설계
-* */
 @Service
 @RequiredArgsConstructor
 public class AdminEventRuleService {
 
-    /*
-    * 이벤트 룰 런타임 설정 객체
-    *
-    * - 애플리케이션 실행 중 동적으로 변경 가능
-    * */
+    //이벤트 룰 런타임 설정 객체
     private final RuleRuntimeConfig cfg;
 
-    /*
-    * 현재 이벤트 룰 조회
-    *
-    * @return : 이벤트 룰 설정 값 Map
-    * */
+    //현재 이벤트 룰 조회
     public Map<String, Object> current() {
         return Map.of(
                 "jumpMinIntervalMs", cfg.getJumpMinIntervalMs(),
@@ -39,14 +23,7 @@ public class AdminEventRuleService {
         );
     }
 
-    /*
-    * 이벤트 룰 업데이트
-    *
-    * - 전달된 값만 부분적으로 반영
-    * - null 값은 기존 설정 유지
-    *
-    * @return : 업데이트 이후 이벤트 룰 설정
-    * */
+    //이벤트 룰 업데이트
     public Map<String, Object> update(
             Integer jumpMinIntervalMs,
             Integer sprintMinDurationMs,

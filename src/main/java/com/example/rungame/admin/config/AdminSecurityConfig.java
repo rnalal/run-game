@@ -1,8 +1,9 @@
 package com.example.rungame.admin.config;
 
+import com.example.rungame.auth.service.RedisTokenService;
 import com.example.rungame.common.jwt.JwtAuthenticationFilter;
 import com.example.rungame.common.jwt.JwtProvider;
-import lombok.RequiredArgsConstructor;
+import com.example.rungame.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -13,38 +14,32 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/*
-*  관리자(Admin) 영역 전용 Spring Security 설정
-*
-* - /admin/** 경로에 대해서만 적용되는 보안 설정
-* - JWT 기반 인증 필터 적용
-* - 관리자 권한 계층(Role Hierarchy) 정의
-*/
-
+//관리자 영역 전용 Spring Security 설정
 @Configuration
-@EnableMethodSecurity(jsr250Enabled = true) // @RolesAllowed 등 메서드 단위 권한 체크 활성화
-@Order(1) // 여러 SecurityConfig 중 우선순위를 높게 설정 (admin 영역 우선 적용)
+@EnableMethodSecurity(jsr250Enabled = true)
+@Order(1)
 public class AdminSecurityConfig {
 
-    // JWT 토큰 생성 및 검증을 담당하는 컴포넌트
     private final JwtProvider jwtProvider;
+    private final RedisTokenService redisTokenService;
+    private final UserRepository userRepository;
 
-    //생성자
-    public AdminSecurityConfig(JwtProvider jwtProvider) {
+    public AdminSecurityConfig(
+            JwtProvider jwtProvider,
+            RedisTokenService redisTokenService,
+            UserRepository userRepository
+    ) {
         this.jwtProvider = jwtProvider;
+        this.redisTokenService = redisTokenService;
+        this.userRepository = userRepository;
     }
 
     @Bean
     public JwtAuthenticationFilter adminJwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider);
+        return new JwtAuthenticationFilter(jwtProvider, redisTokenService, userRepository);
     }
 
-    /*
-    * 관리자 권한 계층 설정
-    *
-    * SUPER_ADMIN > ADMIN > USER
-    * 상위 권한은 하위 권한을 모두 포함함
-    * */
+    //관리자 권한 계층 설정
     @Bean
     public RoleHierarchy roleHierarchy() {
         var h = new RoleHierarchyImpl();
@@ -55,7 +50,7 @@ public class AdminSecurityConfig {
         return h;
     }
 
-    // 관리자 영역(/admin/**) 전용 Security Filter Chain
+    //관리자 영역 전용 Security Filter Chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -63,7 +58,7 @@ public class AdminSecurityConfig {
                 //이 보안 설정은 /rg-admin/** 요청에만 적용
                 .securityMatcher("/rg-admin/**")
 
-                //CSRF 비활성화 (JWT 기반 인증이므로)
+                //CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
 
                 //인증/인가 예외 처리

@@ -15,30 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.Cookie;
 
-/*
-* 인증 컨트롤러
-*
-* - 로그인/ 토큰 재발급/ 로그아웃 처리
-* - Access Token/ Refreah Token을 HTTPOnly 쿠키로 관리
-*
-* 보안 강화를 위해 토큰을 JS에서 접근 불가능한 쿠키에 저장하고
-* Refresh Token은 전용 경로(/api/auth/refresh)로만 전송되도록 제한
-* */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    //인증 비즈니스 로직 서비스
     private final AuthService authService;
 
-    /*
-    * 로그인 처리
-    *
-    * - 아이디/비밀번호 검증
-    * - Access Token + Refresh Token 발급
-    * - 두 토큰을 HTTPOnly 쿠키로 내려줌
-    * */
+    //로그인 처리
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid AuthDTO.LoginReq req) {
         //로그인 성공 시 토큰 세트 발급
@@ -59,7 +43,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Lax")
-                .path("/api/auth/refresh")
+                .path("/api/auth")
                 .maxAge(tokens.getRefreshTtlSeconds())
                 .build();
 
@@ -73,12 +57,7 @@ public class AuthController {
                 .body(ApiResponse.ok("login_success"));
     }
 
-    /*
-    * Access Token 재발급
-    *
-    * - Refresh Token 검증
-    * - Access/ Refresh Token 모두 재발급
-    * */
+    //Access Token 재발급
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request) {
 
@@ -100,7 +79,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Strict")
-                .path("/api/auth/refresh")
+                .path("/api/auth")
                 .maxAge(tokens.getRefreshTtlSeconds())
                 .build();
 
@@ -110,13 +89,7 @@ public class AuthController {
                 .body(ApiResponse.ok("token_refreshed"));
     }
 
-    /*
-    * 로그아웃 처리
-    *
-    * - Refresh Token 무효화
-    * - Access Token 무효화(블랙리스트/버전 등은 서비스에서 처리)
-    * - 클라이언트 쿠키 삭제
-    * */
+    //로그아웃 처리
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
 
@@ -131,12 +104,16 @@ public class AuthController {
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
                 .build();
         //Refresh Token 쿠키 삭제
         ResponseCookie expiredRefresh = ResponseCookie.from("refreshToken", "")
-                .path("/api/auth/refresh")
+                .path("/api/auth")
                 .maxAge(0)
                 .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
                 .build();
 
         return ResponseEntity.ok()

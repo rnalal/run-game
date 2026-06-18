@@ -1,9 +1,4 @@
-/*
-게임 메인 루프 & 초기화 진입점
-- 버튼,입력 바인딩
-- tick()에서 물리,레벨,충돌,렌더링 한 번에 처리
-*/
-// main.js
+//게임 메인 루프 & 초기화 진입점
 
 import { startScreenShake } from "./effects.js";
 import { gimmicks } from "/js/gimmicks.js";
@@ -152,11 +147,7 @@ document.getElementById("resumeBtn")
 //키보드 입력 바인딩
 bindInput();
 
-/*
-GAME LOOP
-- requestAnimationFrame 기반 메인 루프
-- 물리,충돌,스폰 -> HUD,진행바 -> draw()
-*/
+//GAME LOOP
 let lastTS = 0;
 
 function tick(ts) {

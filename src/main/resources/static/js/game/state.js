@@ -1,9 +1,5 @@
-//state.js
-/*
-전역 게임 상태 객체
-- 런타임 동안 공유되는 상태를 한 곳에서 관리
-- 다른 모듈에서 import { s } 후 S.xxx로 읽고 수정
-*/
+
+//전역 게임 상태 객체
 
 import { groundY, SHIELD_MAX_CHARGES, STAR_COUNT, WIND_LIMIT_PER_LEVEL, MAX_LEVEL } from "./constants.js";
 

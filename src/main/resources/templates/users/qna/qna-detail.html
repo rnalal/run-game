@@ -204,10 +204,8 @@
     <button class="action-btn action-list" onclick="location.href='/qna'">목록</button>
   </div>
 </div>
-
+<script src="/js/api.js"></script>
 <script type="module">
-  import { apiFetch } from "/js/api.js";
-
   //URL 쿼리에서 질문 ID 추출
   const id = new URLSearchParams(location.search).get("id");
 

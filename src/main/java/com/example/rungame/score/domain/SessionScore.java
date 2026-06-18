@@ -6,15 +6,6 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/*
-* 세션 점수 엔티티
-* - 한 번 끝난 게임 세션의 점수를 일,주,월,연 단위로 묶어서 리더보드,통계에 쓰기 좋게
-*   저장해 두는 기록 테이블
-*
-* - Session 엔티티에 모든 점수 집계를 걸어두면 랭킹이나 통계 쿼리가 점점 무거워짐
-* - 그래서 세션이 끝날 때마다 그때의 점수와 기간 정보를 따로 떼어 저장해 두고
-*   리더보드,통계는 이 테이블 기준으로 조회
-* */
 @Entity
 @Table(name="sessions_scores")
 @Getter @Setter @Builder
@@ -51,11 +42,7 @@ public class SessionScore {
     @Column(name="period_year")
     private Integer periodYear; // 2025
 
-    /*
-    * 생성 시각
-    * - 세션 종료 후 이 레코드가 실제로 기록된 시각
-    * - period_* 필드는 게임 날짜 기준이고 createdAt은 데이터가 적재된 시간을 나타냄
-    * */
+    //생성 시각
     @Column(name="created_at", nullable = false)
     private LocalDateTime createdAt;
 

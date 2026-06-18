@@ -1,11 +1,7 @@
-/*
-공통 API 호출 유틸
-- 모든 fetch 요청에서 사용
-- 401 나오면 /api/auth/refresh 호출 후 한 번만 원요청 재시도
-*/
+//공통 API 호출 유틸
 let refreshing = null;  //현재 refresh 요청 Pramise (중복 호출 방지)
 
-export async function apiFetch(url, options = {}) {
+window.apiFetch = async function(url, options = {}) {
     //기본 옵션 + 쿠키 포함 설정
     const opts = {
         ...options,
@@ -22,7 +18,7 @@ export async function apiFetch(url, options = {}) {
         return res;
     }
 
-    //refresh 요청 자체에서 401 나면 재시도 안하고 그대로 반환
+    //refresh 요청 자체에서 401 나면 재시도 안 하고 그대로 반환
     if (url === "/api/auth/refresh") {
         return res;
     }
@@ -30,13 +26,13 @@ export async function apiFetch(url, options = {}) {
     console.warn("AccessToken 만료, refresh 시도");
 
     try {
-        //이미 refresh 중이면 그 Pramise 재사용
+        //이미 refresh 중이면 그 Promise 재사용
         if (!refreshing) {
             refreshing = fetch("/api/auth/refresh", {
                 method: "POST",
                 credentials: "include"
             }).finally(() => {
-                refreshing = null;  //완료되면 항상 초기화
+                refreshing = null;  // 완료되면 항상 초기화
             });
         }
 
@@ -55,6 +51,7 @@ export async function apiFetch(url, options = {}) {
             ...opts,
             body: opts.body
         };
+
         return fetch(url, retryOpts);
 
     } catch (e) {
@@ -63,4 +60,4 @@ export async function apiFetch(url, options = {}) {
         location.href = "/login";
         throw e;
     }
-}
+};

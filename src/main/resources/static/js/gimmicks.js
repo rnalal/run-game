@@ -1,4 +1,4 @@
-//gimmicks.js
+
 //레벨별 기믹(웅덩이, 슬라이드, 몬스터, 밤 배경 등) 제어
 export const gimmicks = {
 
@@ -29,11 +29,7 @@ export const gimmicks = {
         if (level >= 8) this.active.dark = true;            //밤
     },
 
-    /*
-    onSpawn()
-    - 스폰 타이밍마다 웅덩이,슬라이드,몬스터,코인폭주 추가
-    - 이미 화면 근처에 있는 기믹과는 겹치지 않게 조정
-    */
+    //스폰 타이밍마다 웅덩이,슬라이드,몬스터,코인폭주 추가
     onSpawn(level, obstacles, coins, playerX, groundY) {
 
         let spawnedPuddle = false;
@@ -123,10 +119,7 @@ export const gimmicks = {
             }
         }
 
-        /*
-        몬스터(레벨6이상)
-        - 슬라이드 주변은 피해서 스폰
-        */
+        //몬스터(레벨6이상)
         if (this.active.monster && Math.random() < 0.14) {
 
             const spawnX = playerX + 460;
@@ -167,10 +160,7 @@ export const gimmicks = {
         };
     },
 
-    /*
-    onTick()
-    - 특정 레벨에서 전체 이동 속도에 보정치 적용
-    */
+    //특정 레벨에서 전체 이동 속도에 보정치 적용
     onTick(level, speed) {
         if (level === 3) speed *= 1.12;
         if (level === 5) speed *= 1.12;
@@ -185,10 +175,7 @@ export const gimmicks = {
         }
     },
 
-    /*
-    onDraw()
-    - 밤 레벨에서 화면 전체를 살짝 어둡게 덮기
-    */
+    //밤 레벨에서 화면 전체를 살짝 어둡게 덮기
     onDraw(level, ctx, w, h, t) {
         if (this.active.dark) {
             ctx.fillStyle = "rgba(0,0,0,0.35)";

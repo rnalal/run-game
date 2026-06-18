@@ -8,28 +8,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-/*
-* 페이지 요청 전용 보안 예외 처리기
-*
-* - 컨트롤러 기반 페이지 요청에서 발생한 인증/인가 예외를 처리
-* - REST API(RestController)용 GlobalExceptionHandler와 역할 분리
-*
-* 목적:
-* - API 요청 -> JSON 에러 응답
-* - 페이지 요청 -> 로그인 페이지 redirect
-* */
+//페이지 요청 전용 보안 예외 처리기
 @ControllerAdvice(annotations = Controller.class)
 public class PageSecurityExceptionHandler {
 
-    /*
-    * 인증/인가 관련 예외 처리
-    * - 로그인하지 않은 사용자 접근
-    * - 권한이 없는 페이지 접근
-    *
-    * 처리 방식:
-    * - JSON 응답
-    * - 로그인 페이지로 redirect
-    * */
+    //인증/인가 관련 예외 처리
     @ExceptionHandler({
             AccessDeniedException.class,
             AuthenticationCredentialsNotFoundException.class

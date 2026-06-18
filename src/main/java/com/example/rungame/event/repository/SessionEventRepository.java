@@ -4,6 +4,7 @@ import com.example.rungame.event.domain.EventType;
 import com.example.rungame.event.domain.SessionEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,22 +13,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/*
-* 세션 이벤트 전용 JPA 레포지토리
-* - 한 세션의 이벤트 타임라인 조회
-* - 특정 타입/유저 기준 필터링
-* - 관리자 검색/모니터링/통계용 집계 쿼리
-* */
-public interface SessionEventRepository extends JpaRepository<SessionEvent, Long> {
+public interface SessionEventRepository extends JpaRepository<SessionEvent, Long>,
+        JpaSpecificationExecutor<SessionEvent> {
+
+    interface EventTypeCount {
+        EventType getType();
+        Long getEventCount();
+    }
 
     //특정 세션의 모든 이벤트를 seq 오름차순으로 조회
     List<SessionEvent> findBySessionIdOrderBySeqAsc(Long sessionId);
-    /*
-       특정 세션에서 가장 마지막 이벤트 조회
-       - 세션 종료 여부 판단
-       - 마지막 이벤트 타입 확인
-     */
+    //특정 세션에서 가장 마지막 이벤트 조회
     Optional<SessionEvent> findTopBySessionIdOrderBySeqDesc(Long sessionId);
+
+    //특정 세션의 최근 이벤트 목록 조회
+    @Query("""
+            select e 
+            from SessionEvent e
+            where e.sessionId = :sessionId
+            order by e.tMs desc, e.id desc
+            """)
+    List<SessionEvent> findRecentBySessionIdOrderByTmsDescIdDesc(
+            @Param("sessionId") Long sessoinId,
+            Pageable pageable
+    );
 
     //세션 내 특정 타입의 이벤트 존재 여부 체크
     boolean existsBySessionIdAndType(Long sessionId, EventType type);
@@ -43,16 +52,13 @@ public interface SessionEventRepository extends JpaRepository<SessionEvent, Long
             @Param("type") EventType type
     );
 
-    /*
-    * 세션 내에서 특정 타입의 마지막 이벤트 한 건만 가져오는 헬퍼
-    * - 위의 JPQL 결과 중 첫 건만 Optional로 래핑해 반환
-    * */
+    //세션 내에서 특정 타입의 마지막 이벤트 한 건만 가져오는 헬퍼
     default Optional<SessionEvent> findLastBySessionIdAndType(Long sessionId, EventType type){
         var list = findAllBySessionIdAndTypeOrderByTmsDescIdDesc(sessionId, type);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
-    // 세션 내 특정 타입 이벤트 누적 개수 카운트
+    //세션 내 특정 타입 이벤트 누적 개수 카운트
     long countBySessionIdAndType(Long sessionId, EventType type);
 
     //유저 ID를 기준으로 최근 이벤트 50개 조회
@@ -77,11 +83,7 @@ public interface SessionEventRepository extends JpaRepository<SessionEvent, Long
     //특정 타입 이벤트가 특정 시각 이후에 몇 번 발생했는지 카운트
     long countByTypeAndCreatedAtAfter(EventType type, java.time.LocalDateTime after);
 
-    /*
-    * 이벤트 검색(+페이징)
-    * - type, userId, sessionId, 기간을 모두 선택적으로 필터링
-    * - 조건이 null이면 해당 조건은 무시하는 방식
-    * */
+    //이벤트 검색
     @Query("""
         select e from SessionEvent e
         join com.example.rungame.session.domain.Session s on e.sessionId = s.id
@@ -101,10 +103,7 @@ public interface SessionEventRepository extends JpaRepository<SessionEvent, Long
             Pageable pageable
     );
 
-    /*
-    * 이벤트 검색(전체 리스트 반환, 페이징 없음)
-    * - searchPage와 동일한 조건이지만 전체 결과를 한 번에 가져옴
-    * */
+    //이벤트 검색(전체 리스트 반환, 페이징 없음)
     @Query("""
         select e from SessionEvent e
         join com.example.rungame.session.domain.Session s on e.sessionId = s.id
@@ -123,10 +122,15 @@ public interface SessionEventRepository extends JpaRepository<SessionEvent, Long
             @Param("toAt") LocalDateTime toAt
     );
 
-    /*
-    * 전체 이벤트 중 특정 타입의 누적 개수
-    * - 게임 전반에서 hit_obstacle, game_over, coin_pick 등이 얼마나 발생했는지
-    * */
+    //전체 이벤트 중 특정 타입의 누적 개수
     long countByType(EventType type);
 
+    //관리자 대시보드 이벤트 TOP5 차트용
+    @Query("""
+            select e.type as type,
+                count(e) as eventCount
+            from SessionEvent e
+            group by e.type
+            """)
+    List<EventTypeCount> countGroupByType();
 }

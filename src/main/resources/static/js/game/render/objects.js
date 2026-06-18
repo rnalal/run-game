@@ -9,13 +9,7 @@ import { groundY } from "../constants.js";
 import { worldX } from "../utils.js";
 import { drawWindIcon } from "./draw.js"; //바람 부스트 아이콘은 draw.js에서 공용 사용
 
-/*
-화면에 등장하는 오브젝트 렌더 담당
-- 체크포인트 라인
-- 장애물(슬라이드 장애물, 물웅덩이, 몬스터, 나무 등)
-- 코인
-- 바람 부스트 아이템
-*/
+//화면에 등장하는 오브젝트 렌더 담당
 
 //체트포인트 렌더
 export function drawCheckpoints(){

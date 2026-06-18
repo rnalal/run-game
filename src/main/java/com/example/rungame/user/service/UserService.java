@@ -8,53 +8,38 @@ import com.example.rungame.user.dto.UserDTO;
 import com.example.rungame.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*
-* UserService
-* - 회원가입, 로그인, 로그아웃, 내 정보 조회, 비밀번호/닉네임 변경, 회원 탈퇴 등
-*   사용자 계정 관련 핵심 비즈니스 로직은 담당함
-* - JWT + tokenVersion을 이용해서 로그아웃 이후 토큰 무효화까지 처리함
-* - SessionRepository와 연동해서 마이페이지에 보여줄 플레이 통계도 함께 계산
-*
-* - 비밀번호는 BCrypt로 해시 저장 및 검증
-* - JWT 안에 userId, email, nickname, role, tokenVersion 등을 넣고
-*   토큰 한 개로 인증 + 권한 + 버전 관리까지 처리
-* - 토큰에 들어 있는 tokenVersion과 DB의 tokenVersion을 비교해서
-*   로그아웃,비밀번호 변경, 탈퇴 이후의 토큰은 자동으로 막도록 설계
-* */
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-    //유저 DB 접근
     private final UserRepository userRepository;
     //비밀번호 해시,검증
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder encoder;
     //JWT 발급,검증
     private final JwtProvider jwtProvider;
-    //플레이 기록,통계 조회
     private final SessionRepository sessionRepository;
 
     //회원가입
     @Transactional
     public UserDTO.UserRes signUp(UserDTO.SignUpReq req) {
-        //1)이메일,닉네임 중복 체크
+        //이메일,닉네임 중복 체크
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
         if (userRepository.existsByNickname(req.getNickname())) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
-        //2)비밀번호 해시
+        //비밀번호 해시
         String hash = encoder.encode(req.getPassword());
         //3)User 생성 및 저장
         User saved = userRepository.save(User.create(req.getEmail(), hash, req.getNickname()));
-        //4)응답 DTO 매핑
+        //응답 DTO 매핑
         return UserDTO.UserRes.builder()
                 .id(saved.getId())
                 .email(saved.getEmail())
@@ -67,16 +52,16 @@ public class UserService {
 
     //로그인(JWT 발급)
     public UserDTO.LoginRes login(UserDTO.LoginReq req){
-        //1)이메일로 유저 조회
+        //이메일로 유저 조회
         User u = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        //2)비밀번호 검증
+        //비밀번호 검증
         if(!encoder.matches(req.getPassword(), u.getPasswordHash())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
-        //3)계정 상태 체크
+        //계정 상태 체크
         if("BANNED".equalsIgnoreCase(u.getStatus())){
             throw new IllegalArgumentException("접근이 제한된 계정입니다.");
         }
@@ -84,10 +69,10 @@ public class UserService {
             throw new IllegalArgumentException("탈퇴한 계정입니다.");
         }
 
-        //4)JWT 생성(userId, email, nickname, role, tokenVersion 포함)
+        //JWT 생성(userId, email, nickname, role, tokenVersion 포함)
         String token = jwtProvider.createAccessToken(u.getId(), u.getEmail(), u.getNickname(), u.getRole(), u.getTokenVersion());
 
-        //5)프론트에서 사용할 LoginRes 반환
+        //프론트에서 사용할 LoginRes 반환
         long ttl = 3600; //만료까지 남은 시간(초)
         return new UserDTO.LoginRes(token, u.getId(), u.getEmail(), u.getNickname(), ttl);
     }
@@ -95,28 +80,28 @@ public class UserService {
     //로그아웃 (tokenVersion+1)
     @Transactional
     public UserDTO.LogoutRes logoutByToken(String bearerToken) {
-        //1)토큰 서명,만료 검증
+        //토큰 서명,만료 검증
         if (!jwtProvider.validate(bearerToken)) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 토큰입니다.");
         }
 
-        //2)토큰에서 userId, tokenVersion 추출
+        //토큰에서 userId, tokenVersion 추출
         Long userIdFromToken = jwtProvider.getUserId(bearerToken);
         int tokenVerFromToken = jwtProvider.getVersion(bearerToken);
 
-        //3)DB에서 사용자 조회
+        //DB에서 사용자 조회
         User user = userRepository.findById(userIdFromToken)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        //4)이미 한 번 무효화된 토큰인지 체크
+        //이미 한 번 무효화된 토큰인지 체크
         if (tokenVerFromToken != user.getTokenVersion()) {
             throw new IllegalStateException("이미 무효화된 토큰입니다.");
         }
 
-        //5)tokenVersion 증가 -> 이전에 발급된 토큰 전부 무효
+        //tokenVersion 증가 -> 이전에 발급된 토큰 전부 무효
         user.incrementTokenVersion();
 
-        //6)응답
+        //응답
         return UserDTO.LogoutRes.builder()
                 .userId(user.getId())
                 .newTokenVersion(user.getTokenVersion())
@@ -127,28 +112,28 @@ public class UserService {
     //내 정보 조회+플레이 통계
     @Transactional
     public UserDTO.MyInfoRes getMyInfoByToken(String bearerToken){
-        //1)토큰 검증
+        //토큰 검증
         if (!jwtProvider.validate(bearerToken)){
             throw new IllegalArgumentException("유효하지 않거나 만료된 토큰입니다.");
         }
 
-        //2)userId / tokenVersion 추출
+        //userId / tokenVersion 추출
         Long userId = jwtProvider.getUserId(bearerToken);
         int ver = jwtProvider.getVersion(bearerToken);
 
-        //3)tokenVersion까지 일치하는 유저만 허용 -> 로그아웃, 탈퇴 토큰 차단
+        //tokenVersion까지 일치하는 유저만 허용 -> 로그아웃, 탈퇴 토큰 차단
         User user = userRepository.findByIdAndTokenVersion(userId, ver)
                 .orElseThrow(() -> new IllegalArgumentException("토큰이 무효화되었거나 사용자 정보를 찾을 수 없습니다."));
 
-        //4)계정 상태 체크
+        //계정 상태 체크
         if(!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
             throw new IllegalArgumentException("비활성화된 계정입니다.");
         }
 
-        //5)기본 유저 정보 세팅
+        //기본 유저 정보 세팅
         UserDTO.MyInfoRes res = UserDTO.MyInfoRes.from(user);
 
-        //6)플레이 누적,최고,평균 통계 조회
+        //플레이 누적,최고,평균 통계 조회
         long sumScore = sessionRepository.sumScoreByUserId(userId);
         long sumDistance = sessionRepository.sumDistanceByUserId(userId);
         long sumCoins = sessionRepository.sumCoinsByUserId(userId);

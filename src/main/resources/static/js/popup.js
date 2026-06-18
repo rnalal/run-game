@@ -1,4 +1,4 @@
-//popup.js
+
 //팝업 공지 로딩,표시
 async function loadPopupNotice() {
   try {

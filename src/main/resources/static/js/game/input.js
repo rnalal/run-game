@@ -1,10 +1,4 @@
-/*
-키 입력 처리
-- 방향키로 점프,질주,역주행,슬라이드 조작
-- 점프 디바운스로 연타 방지
-- M/S/X 키로 파워업 픽업 트리거
-*/
-//input.js
+//키 입력 처리
 
 import { S } from "./state.js";
 import { jumpVy, JUMP_DEBOUNCE } from "./constants.js";

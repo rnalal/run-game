@@ -13,21 +13,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-/*
-* 전역 예외 처리 핸들러
-* - 애플리케이션 전반에서 발생하는 예외를 한 곳에서 처리
-* - 모든 API 에러 응답을 ApiError 포맷으로 통일
-*
-* 컨트롤러마다 try-catch 를 두지 않고
-* 예외 처리 책임을 집중화하기 위한 설계
-* */
+//전역 예외 처리 핸들러
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    /*
-    * 1) @Valid 검증 실패 예외 처리
-    * - DTO 필드 단위 검증 실패
-    * - 어떤 필드가 왜 실패했는지 상세 정보 제공
-    * */
+
+    //@Valid 검증 실패 예외 처리
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req){
         BindingResult br = ex.getBindingResult();
@@ -48,12 +38,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus()).body(err);
     }
 
-    /*
-    * 2) 잘못된 요청(400) 계열 예외 처리
-    * - IllegalArgumentException
-    * - ConstrainViolationException (@RequestParam 검증 실패)
-    * - JSON 파싱 오류
-    * */
+    //잘못된 요청(400) 계열 예외 처리
     @ExceptionHandler({IllegalArgumentException.class, ConstraintViolationException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<ApiError> handleBadRequest(Exception ex, HttpServletRequest req) {
         var code = ErrorCode.INVALID_INPUT;
@@ -67,11 +52,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(code.getStatus()).body(err);
     }
 
-    /*
-    * 3) 처리되지 않은 모든 예외
-    * - 시스템 오류(500)로 분류
-    * - 보안 예외는 Spring Security 에게 위임
-    * */
+    //처리되지 않은 모든 예외
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAny(Exception ex, HttpServletRequest req) {
 
@@ -96,11 +77,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(code.getStatus()).body(err);
     }
 
-    /*
-    * 4) QnA 도메인 전용 접근 권한 예외 처리
-    * - 로그인 필요/ 권한 부족을 구분
-    * - 도메인 예외를 공통 에러 포맷으로 매핑
-    * */
+    //QnA 도메인 전용 접근 권한 예외 처리
     @ExceptionHandler(QnaAccessDeniedException.class)
     public ResponseEntity<ApiError> handleQnaAccessDenied(
             QnaAccessDeniedException ex,

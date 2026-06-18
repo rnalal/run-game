@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-/*
-* QnA 질문 생성 요청 DTO
-* - 사용자가 새 QnA 질문을 작성할 때 제목,내용,공개 범위를 서버로 전달하기 위한 요청 모델
-* */
+//QnA 질문 생성 요청 DTO
 @Getter
 public class QnaQuestionCreateRequest {
     @NotBlank

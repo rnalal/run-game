@@ -1,11 +1,6 @@
-//spawn.js
-/*
-코인,체크포인트,장애물,바람 아이템 생성 & 픽업 처리
-- 플레이어 진행 거리를 기준으로 다음 스폰 지점까지 도달하면 새 오브젝트 생성
-- 레벨에 따라 장애물 등장 확률,간격 조정
-- 자석,점수 2배,바람 부스트 같은 파워업 효과를 반영해서 코인,바람 아이템 획득 처리
-- 코인,바람 픽업 시 서버로 이벤트 전송
-*/
+
+//코인,체크포인트,장애물,바람 아이템 생성 & 픽업 처리
+
 import { gimmicks } from "/js/gimmicks.js";
 
 import { S } from "./state.js";
@@ -40,10 +35,7 @@ export function spawnThings(){
   }
   p = Math.min(0.68, p);
 
-  /*
-  레벨별 연출에서 선행 스폰
-  - puddle, 특수 나무 등
-  */
+  //레벨별 연출에서 선행 스폰
   const spawnResult = gimmicks.onSpawn(
     S.level,
     S.obstacles,
@@ -82,10 +74,7 @@ export function spawnThings(){
     }
   }
 
-  /*
-  바람 아이템
-  - 레벨당 최대 3개까지만
-  */
+  //바람 아이템
   if (S.windCountThisLevel < 3) {
     if (Math.random() < 0.05) {
       const windX = S.playerX + 550;
@@ -107,12 +96,7 @@ export function spawnThings(){
   S.nextSpawnX = S.playerX + step;
 }
 
-/*
-코인 픽업 처리
-- 자석 활성화 시 판정 범위 확장
-- SCORE_X2 활성화 시 코인 획득 시점에서 점수 2배
-- 서버로 coin_pick 이벤트 전송
-*/
+//코인 픽업 처리
 export function pickCoins(){
   const now = nowMs();
   for(const c of S.coins){
@@ -133,11 +117,7 @@ export function pickCoins(){
   }
 }
 
-/*
-바람 아이템 픽업 처리
-- SPEED_BOOST 지속 시간 연장
-- 서버에는 powerup_pick(name=SPEED_BOOST)으로 기록만 남김
-*/
+//바람 아이템 픽업 처리
 export function pickWindBoost(){
   const now = nowMs();
   for (const w of S.windBoosts) {
