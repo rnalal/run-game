@@ -3,6 +3,7 @@ package com.example.rungame.leaderboard.service;
 import com.example.rungame.leaderboard.dto.LeaderboardEntryDTO;
 import com.example.rungame.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +34,8 @@ public class RedisLeaderboardService {
     private static final Duration WEEKLY_TTL = Duration.ofDays(90);
     private static final Duration MONTHLY_TTL = Duration.ofDays(400);
 
-    //게임 세션 종료 시 리더보드 갱신
+    //게임 세션 종료 시 redis 리더보드 갱신하고 기존 리더보드 조회 캐시를 무효화
+    @CacheEvict(value="leaderboard_all", allEntries=true)
     public void updateLeaderboards(Long userId, int score, LocalDateTime endedAt){
         ZoneId kst = ZoneId.of("Asia/Seoul");
         LocalDate day = endedAt == null
