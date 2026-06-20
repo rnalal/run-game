@@ -29,8 +29,7 @@ public class AdminLeaderboardService {
 
         cacheManager.getCacheNames().forEach(name -> {
             if (
-                    name.startsWith("leaderboard")
-                    || name.startsWith("admin_leaderboard")
+                    name.startsWith("admin_leaderboard")
                     || name.startsWith("admin_dashboard")
             ) {
                 Objects.requireNonNull(cacheManager.getCache(name)).clear();
