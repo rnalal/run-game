@@ -12,14 +12,6 @@
 
 &#x20; <img src="image1/6.png" width="100%" />
 
-&#x20; <img src="image1/7.png" width="100%" />
-
-&#x20; <img src="image1/8.png" width="100%" />
-
-&#x20; <img src="image1/9.png" width="100%" />
-
-&#x20; <img src="image1/10.png" width="100%" />
-
 </p>
 
 
